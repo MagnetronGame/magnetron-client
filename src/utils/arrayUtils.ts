@@ -1,0 +1,1 @@
+export const range = (length: number, start: number = 0) => Array.from(Array(length).keys()).map(i => i+start)
