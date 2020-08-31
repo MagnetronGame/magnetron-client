@@ -1,13 +1,13 @@
-import React, { useEffect } from "react"
-import { useGameServer } from "../services/gameServerService"
+import React, { useEffect, useState } from "react"
 import MagnetronGame2d from "./MagnetronGame2d"
+import { useGameServerAsHost } from "../services/gameServerService"
 
-const Magnetron = () => {
-    const { createGame, pin, myTurn, state, possibleActions, performAction } = useGameServer()
+const MagnetronHost = () => {
+    const { createGame, pin, state, possibleActions, performAction } = useGameServerAsHost()
 
     useEffect(() => {
         createGame()
-    }, [])
+    }, [createGame])
 
     return (
         <div style={{ height: "100%" }}>
@@ -24,4 +24,4 @@ const Magnetron = () => {
     )
 }
 
-export default Magnetron
+export default MagnetronHost

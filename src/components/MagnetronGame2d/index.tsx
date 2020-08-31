@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react"
-import {
-    MagAction,
-    MagnetPiece,
-    MagnetType,
-    MagState,
-    Piece,
-    Vec2I,
-} from "../../services/magnetronGameTypes"
+import { MagAction, MagnetPiece, MagState, Piece, Vec2I } from "../../services/magnetronGameTypes"
 import styled from "styled-components"
-import { possibleActions } from "../../services/gameServerApi"
-import { MagnetPieceComp, PieceComp } from "./pieces"
+import { PieceComp } from "./pieces"
 import * as vec2i from "../../utils/vec2IUtils"
 
 type Props = {

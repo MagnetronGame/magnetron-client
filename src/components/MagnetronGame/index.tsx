@@ -1,20 +1,23 @@
 import React, { useEffect, useRef } from "react"
 import { Magnetron } from "./magnetron"
-import { useGameServer } from "../../services/gameServerService"
+import { MagAction, MagState } from "../../services/magnetronGameTypes"
 
 type Props = {
-    style: React.CSSProperties
+    className?: string
+    style?: React.CSSProperties
+    magState: MagState
+    possibleMagActions: MagAction[]
+    onMagAction: (action: MagAction) => void
 }
 
-const MagnetronGame: React.FC<Props> = ({ style }) => {
+const MagnetronGame: React.FC<Props> = ({
+    className,
+    style,
+    magState: state,
+    possibleMagActions,
+}) => {
     const rootNode = useRef<HTMLDivElement>(null)
     const magnetron = useRef<Magnetron>(null)
-
-    const { createGame, pin, myTurn, state, possibleActions, performAction } = useGameServer()
-
-    useEffect(() => {
-        createGame()
-    }, [])
 
     useEffect(() => {
         if (rootNode.current && state) {
