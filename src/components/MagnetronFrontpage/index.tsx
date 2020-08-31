@@ -25,7 +25,7 @@ const MagnetronFrontpage = () => {
                 <JoinGameBox></JoinGameBox>
             </JoinGameArea>
             <HostGameArea>
-                <HostGameButton>Host game</HostGameButton>
+                <HostGameButton to={"/host"}>Host game &rArr;</HostGameButton>
             </HostGameArea>
         </Wrapper>
     )

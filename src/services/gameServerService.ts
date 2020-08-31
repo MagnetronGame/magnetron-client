@@ -19,9 +19,10 @@ export type UseGameServerAsClient = {
     performAction: (action: MagAction) => void
 }
 
-export const useGameServerAsHost = (): UseGameServerAsHost => {
-    const [pin, setPin] = useState<string | undefined>(undefined)
+export const useGameServerAsHost = (existingPin?: string): UseGameServerAsHost => {
+    const [pin, setPin] = useState<string | undefined>(existingPin)
     const [hostToken, setHostToken] = useState<string | undefined>(undefined)
+    const [connectedPlayerNames, setConnectedPlayerNames] = useState<string[]>([])
     const [state, setState] = useState<MagState | undefined>(undefined)
     const [possibleActions, setPossibleActions] = useState<MagAction[]>([])
 
@@ -38,7 +39,7 @@ export const useGameServerAsHost = (): UseGameServerAsHost => {
 
     const performAction = useCallback(
         (action: MagAction) => {
-            if (pin && hostToken && state) {
+            if (pin && state) {
                 api.performAction(pin, action).then((state) => {
                     setState(state)
                     api.possibleActions(pin).then((actions) => {

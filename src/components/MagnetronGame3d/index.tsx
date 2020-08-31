@@ -10,7 +10,7 @@ type Props = {
     onMagAction: (action: MagAction) => void
 }
 
-const MagnetronGame: React.FC<Props> = ({
+const MagnetronGame3d: React.FC<Props> = ({
     className,
     style,
     magState: state,
@@ -30,4 +30,4 @@ const MagnetronGame: React.FC<Props> = ({
     return <div ref={rootNode} style={{ width: "100%", height: "100%" }}></div>
 }
 
-export default MagnetronGame
+export default MagnetronGame3d

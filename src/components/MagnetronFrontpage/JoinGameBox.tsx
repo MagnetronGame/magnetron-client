@@ -16,25 +16,50 @@ const Wrapper = styled.div`
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
 `
 
-const PinInputArea = styled.div``
+const InputPinArea = styled.div`
+    display: flex;
+    justify-content: center;
+    padding-bottom: 5px;
+    box-sizing: border-box;
+`
+const PinLabel = styled.span``
+const PinInput = styled.input`
+    height: 100%;
+    width: 4em;
+    color: black;
+    font-family: "Krona One", sans-serif;
+    font-size: 36px;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid black;
+`
 
 const JoinButton = styled.button`
+    //width: 70%;
     outline: none;
     border-style: solid none;
     border-color: black;
     border-width: 3px;
-    background: none;
+    background-color: #ffffff44;
+    text-decoration: none;
     font-size: inherit;
+    cursor: pointer;
+    &:hover {
+        background-color: #ffffff70;
+    }
 `
 
 const JoinGameBox = () => {
     return (
         <Wrapper>
-            <PinInputArea>Pin: </PinInputArea>
-            <JoinButton>Join game!</JoinButton>
+            <InputPinArea>
+                <PinLabel>Pin:&nbsp;</PinLabel>
+                <PinInput type={"text"} maxLength={4} placeholder={"1234"} />
+            </InputPinArea>
+            <JoinButton>Join game &rArr;</JoinButton>
         </Wrapper>
     )
 }

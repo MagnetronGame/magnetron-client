@@ -3,16 +3,17 @@ import MagnetronTitleLogo from "../MagnetronTitleLogo"
 import React, { PropsWithChildren } from "react"
 import { MagnetColor } from "../../magnetronGameStyle"
 import { MagnetType } from "../../services/magnetronGameTypes"
+import { Link } from "react-router-dom"
 
 export const Wrapper = styled.div`
     width: 100%;
     height: 100%;
 
-    font-family: "Roboto", serif;
+    font-family: "Roboto", sans-serif;
 
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 64px 1fr 1fr 64px;
+    grid-template-columns: 1fr minmax(300px, 1fr) 1fr;
+    grid-template-rows: minmax(0, 1fr) 64px minmax(0, 1fr) minmax(0, 1fr) 64px;
     grid-template-areas:
         "title title title"
         "nav nav nav"
@@ -62,14 +63,22 @@ export const HostGameArea = styled.div`
     align-items: flex-start;
 `
 
-export const HostGameButton = styled.button`
+export const HostGameButton = styled(Link)`
     box-sizing: border-box;
     max-width: 100%;
     max-height: 100%;
     box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
     border-radius: 20px;
     background-color: ${MagnetColor[MagnetType.NEGATIVE]};
-    padding: 20px 100px;
+    padding: 20px 10%;
     border: none;
     outline: none;
+    text-decoration: none;
+    font-size: 32px;
+    color: #ffffff;
+    cursor: pointer;
+
+    &:hover {
+        background-color: ${MagnetColor[MagnetType.NEGATIVE]}b0;
+    }
 `
