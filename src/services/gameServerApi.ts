@@ -7,6 +7,7 @@ const apiUrl = `${apiAddress}${apiPrefix}`
 export const createGame = (): Promise<string> =>
     fetch(`${apiUrl}/createGame`, {
         method: "POST",
+        headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
         .then((pin) => {
@@ -19,6 +20,7 @@ export const createGame = (): Promise<string> =>
 export const gameState = (pin: string): Promise<MagState> =>
     fetch(`${apiUrl}/gameState/${pin}`, {
         method: "GET",
+        headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
         .then((gameState) => gameState as MagState)
@@ -26,6 +28,7 @@ export const gameState = (pin: string): Promise<MagState> =>
 export const possibleActions = (pin: string): Promise<MagAction[]> =>
     fetch(`${apiUrl}/possibleActions/${pin}`, {
         method: "GET",
+        headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
         .then((actions) => actions as MagAction[])
@@ -33,6 +36,7 @@ export const possibleActions = (pin: string): Promise<MagAction[]> =>
 export const performAction = (pin: string, action: MagAction): Promise<MagState> =>
     fetch(`${apiUrl}/performAction/${pin}`, {
         method: "POST",
+        headers: { "Content-type": "application/json" },
         body: JSON.stringify(action),
     })
         .then((res) => res.json())

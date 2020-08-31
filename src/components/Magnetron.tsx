@@ -15,7 +15,7 @@ const Magnetron = () => {
                 <MagnetronGame2d
                     magState={state}
                     possibleMagActions={possibleActions}
-                    onMagAction={(action) => console.log(action)}
+                    onMagAction={(action) => performAction(action)}
                 />
             ) : (
                 <span>Waiting for server</span>

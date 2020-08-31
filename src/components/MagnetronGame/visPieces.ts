@@ -8,18 +8,12 @@ import {
 } from "../../services/magnetronGameTypes"
 import * as THREE from "three"
 import { StaticBoard } from "./board"
+import { MagnetColor } from "../../magnetronGameStyle"
 
 export type VisPiece = {
     type: string
     pieceData: Piece
     pieceObject: THREE.Object3D
-}
-
-export const MagnetColor: Record<MagnetType, string> = {
-    [MagnetType.POSITIVE]: "#ff3c2d",
-    [MagnetType.NEGATIVE]: "#433aff",
-    [MagnetType.FAKE]: "#3b3b3b",
-    [MagnetType.UNKNOWN]: "#000000",
 }
 
 export const createVisPiece = (piece: Piece, staticBoard: StaticBoard): VisPiece => {

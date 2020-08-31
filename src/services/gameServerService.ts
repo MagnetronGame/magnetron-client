@@ -37,7 +37,7 @@ export const useGameServer = (): UseGameServer => {
     }
 
     const performAction = (action: MagAction) => {
-        if (pin && state && state.avatarTurnIndex === myAvatarIndex) {
+        if (pin && state) {
             api.performAction(pin, action).then((state) => {
                 setState(state)
                 api.possibleActions(pin).then((actions) => {
