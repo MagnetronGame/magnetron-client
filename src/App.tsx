@@ -9,11 +9,17 @@ function App() {
         <div style={{ height: "100vh" }}>
             <Router>
                 <Switch>
-                    <Route path={"/client"}>
+                    <Route path={"/client/:pin"}>
                         <MagnetronClient />
                     </Route>
-                    <Route path={"/host"}>
-                        <MagnetronHost />
+                    <Route path={"/host/create"}>
+                        <MagnetronHost shouldCreateGame={true} />
+                    </Route>
+                    <Route path={"/host/lobby/:pin"}>
+                        <MagnetronHost shouldCreateGame={true} />
+                    </Route>
+                    <Route path={"/host/:pin"}>
+                        <MagnetronHost shouldCreateGame={false} />
                     </Route>
                     <Route path={"/"}>
                         <MagnetronFrontPage />

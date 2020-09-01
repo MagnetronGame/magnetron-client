@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react"
 import MagnetronGame3d from "../MagnetronGame3d"
 import { useGameServerAsHost } from "../../services/gameServerService"
-import GameSetup from "./GameSetup"
-import { useLocation } from "react-router-dom"
+import GameSetup from "./GameLobby"
+import { useRouteMatch } from "react-router-dom"
 
-const MagnetronHost = () => {
-    // const location = useLocation()
-    // const pathname = location.pathname
-    // const pathParts = pathname.split("/").filter((p) => p !== "")
-    // const existingPin = pathParts[pathParts.length - 1]
+type Props = {
+    shouldCreateGame: boolean
+}
 
-    const { createGame, pin, state, possibleActions, performAction } = useGameServerAsHost()
-    // const state = undefined
+type RouterMatch = {
+    pin: string
+}
+
+const MagnetronHost: React.FC<Props> = ({ shouldCreateGame }) => {
+    const urlPin = useRouteMatch<RouterMatch>().params.pin
+    const { createGame, pin, state, possibleActions, performAction } = useGameServerAsHost(urlPin)
 
     useEffect(() => {
-        if (!pin) {
+        if (shouldCreateGame) {
             createGame()
         }
-    }, [pin, createGame])
+    }, [createGame, shouldCreateGame])
 
     if (!pin) {
         return <span>Waiting for server</span>

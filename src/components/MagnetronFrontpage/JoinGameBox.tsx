@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useState } from "react"
 import styled from "styled-components"
 import { MagnetColor } from "../../magnetronGameStyle"
 import { MagnetType } from "../../services/magnetronGameTypes"
+import { Link } from "react-router-dom"
 
 const Wrapper = styled.div`
     box-sizing: border-box;
@@ -37,7 +38,7 @@ const PinInput = styled.input`
     border-bottom: 1px solid black;
 `
 
-const JoinButton = styled.button`
+const JoinButton = styled(Link)`
     //width: 70%;
     outline: none;
     border-style: solid none;
@@ -47,19 +48,29 @@ const JoinButton = styled.button`
     text-decoration: none;
     font-size: inherit;
     cursor: pointer;
+    color: black;
+    text-align: center;
     &:hover {
         background-color: #ffffff70;
     }
 `
 
 const JoinGameBox = () => {
+    const [inputPin, setInputPin] = useState<string>("")
+
     return (
         <Wrapper>
             <InputPinArea>
                 <PinLabel>Pin:&nbsp;</PinLabel>
-                <PinInput type={"text"} maxLength={4} placeholder={"1234"} />
+                <PinInput
+                    type={"text"}
+                    maxLength={4}
+                    placeholder={"1234"}
+                    value={inputPin}
+                    onChange={(e) => setInputPin(e.target.value)}
+                />
             </InputPinArea>
-            <JoinButton>Join game &rArr;</JoinButton>
+            <JoinButton to={`/client/${inputPin}`}>Join game &rArr;</JoinButton>
         </Wrapper>
     )
 }

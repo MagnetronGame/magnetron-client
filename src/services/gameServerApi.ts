@@ -10,6 +10,7 @@ export const createGame = (): Promise<string> =>
         headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
+        .then((resJ) => (resJ.ok ? resJ : Promise.reject(resJ)))
         .then((pin) => {
             console.dir("Pin: " + pin)
             return pin
@@ -23,6 +24,7 @@ export const gameState = (pin: string): Promise<MagState> =>
         headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
+        .then((resJ) => (resJ.ok ? resJ : Promise.reject(resJ)))
         .then((gameState) => gameState as MagState)
 
 export const possibleActions = (pin: string): Promise<MagAction[]> =>
@@ -31,6 +33,7 @@ export const possibleActions = (pin: string): Promise<MagAction[]> =>
         headers: { "Content-type": "application/json" },
     })
         .then((res) => res.json())
+        .then((resJ) => (resJ.ok ? resJ : Promise.reject(resJ)))
         .then((actions) => actions as MagAction[])
 
 export const performAction = (pin: string, action: MagAction): Promise<MagState> =>
@@ -40,4 +43,5 @@ export const performAction = (pin: string, action: MagAction): Promise<MagState>
         body: JSON.stringify(action),
     })
         .then((res) => res.json())
+        .then((resJ) => (resJ.ok ? resJ : Promise.reject(resJ)))
         .then((state) => state as MagState)

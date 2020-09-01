@@ -38,7 +38,7 @@ const Player = styled.li`
     font-family: inherit;
 `
 
-const GameSetup: React.FC<Props> = ({ pin, connectedPlayers }) => {
+const GameLobby: React.FC<Props> = ({ pin, connectedPlayers }) => {
     return (
         <Wrapper>
             <ShowPin>{pin}</ShowPin>
@@ -51,4 +51,4 @@ const GameSetup: React.FC<Props> = ({ pin, connectedPlayers }) => {
     )
 }
 
-export default GameSetup
+export default GameLobby

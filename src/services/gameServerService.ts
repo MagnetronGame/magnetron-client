@@ -11,6 +11,7 @@ export type UseGameServerAsHost = {
 }
 
 export type UseGameServerAsClient = {
+    invalidPin: boolean
     joinGame: (pin: string) => void
     pin: string | undefined
     myTurn: boolean
@@ -66,11 +67,16 @@ export const useGameServerAsClient = (): UseGameServerAsClient => {
     const [myTurn, setMyTurn] = useState<boolean>(false)
     const [state, setState] = useState<MagState | undefined>(undefined)
     const [possibleActions, setPossibleActions] = useState<MagAction[]>([])
+    const [invalidPin, setInvalidPin] = useState<boolean>(false)
 
     useEffect(() => {
         if (pin) {
-            api.gameState(pin).then((state) => setState(state))
-            api.possibleActions(pin).then((actions) => setPossibleActions(actions))
+            api.gameState(pin)
+                .then((state) => setState(state))
+                .catch((err) => setInvalidPin(true))
+            api.possibleActions(pin)
+                .then((actions) => setPossibleActions(actions))
+                .catch((err) => setInvalidPin(true))
         }
     }, [pin])
 
@@ -87,16 +93,16 @@ export const useGameServerAsClient = (): UseGameServerAsClient => {
 
     const performAction = (action: MagAction) => {
         if (pin && state) {
-            api.performAction(pin, action).then((state) => {
-                setState(state)
-                api.possibleActions(pin).then((actions) => {
-                    setPossibleActions(actions)
-                })
-            })
+            api.performAction(pin, action)
+                .then((state) => setState(state))
+                .then(() => api.possibleActions(pin))
+                .then((actions) => setPossibleActions(actions))
+                .catch((err) => setInvalidPin(true))
         }
     }
 
     return {
+        invalidPin,
         joinGame,
         pin,
         myTurn,
