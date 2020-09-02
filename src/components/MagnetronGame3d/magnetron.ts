@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { Board } from "./board"
 import { Entity } from "./Entity"
-import { MagState } from "../../services/magnetronGameTypes"
+import { MagState } from "../../services/magnetronServerService/magnetronGameTypes"
 import CameraOrbitControls from "./cameraOrbitControls"
 import { CameraMovement } from "./cameraMovement"
 import { CameraZoomRotate } from "./CameraZoomRotate"

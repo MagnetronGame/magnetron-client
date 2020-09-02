@@ -1,28 +1,44 @@
 import React, { useEffect, useState } from "react"
 import MagnetronGame2d from "./MagnetronGame2d"
-import { useGameServerAsClient } from "../services/gameServerService"
-import { Link, useLocation, useRouteMatch } from "react-router-dom"
+import { Link, useLocation, useRouteMatch, useParams } from "react-router-dom"
+import useGameServerClient from "../services/magnetronServerService/useGameServerClient"
 
 type Props = {}
-type RouteMatch = { pin: string }
+type RouteMatch = { pin: string; playerIndex: string }
 
 const MagnetronClient: React.FC<Props> = () => {
-    const {
-        invalidPin,
-        joinGame,
-        pin,
-        myTurn,
-        state,
-        possibleActions,
-        performAction,
-    } = useGameServerAsClient()
-    const routeMatch = useRouteMatch<RouteMatch>()
-    const joinPin = routeMatch.params.pin
-    console.log("url pin", joinPin)
+    const params = useRouteMatch<RouteMatch>().params
+    const pin = params.pin
+    const playerIndex = parseInt(params.playerIndex)
 
-    useEffect(() => {
-        joinGame(joinPin)
-    }, [joinPin, joinGame])
+    const { gameAccessible, myTurn, state, possibleActions, performAction } = useGameServerClient(
+        pin,
+        playerIndex,
+    )
+
+    const message: string | undefined =
+        gameAccessible === undefined
+            ? "Two sec..."
+            : !gameAccessible
+            ? "Could not connect to game :("
+            : !state
+            ? "Waiting for game"
+            : undefined
+
+    const messageElem = (
+        <>
+            <br />
+            <div style={{ textAlign: "center" }}>{message}</div>
+        </>
+    )
+
+    const gameElem = state && (
+        <MagnetronGame2d
+            magState={state}
+            possibleMagActions={possibleActions}
+            onMagAction={(action) => performAction(action)}
+        />
+    )
 
     return (
         <div style={{ width: "100%", height: "100%" }}>
@@ -31,23 +47,7 @@ const MagnetronClient: React.FC<Props> = () => {
                     &lArr; Back
                 </Link>
             </span>
-            {invalidPin ? (
-                <>
-                    <br />
-                    <div style={{ textAlign: "center" }}>Invalid pin: {pin}</div>
-                </>
-            ) : state ? (
-                <MagnetronGame2d
-                    magState={state}
-                    possibleMagActions={possibleActions}
-                    onMagAction={(action) => performAction(action)}
-                />
-            ) : (
-                <>
-                    <br />
-                    <div style={{ textAlign: "center" }}>Two sec...</div>
-                </>
-            )}
+            {message ? messageElem : gameElem}
         </div>
     )
 }

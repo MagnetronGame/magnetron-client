@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import { Magnetron } from "./magnetron"
-import { MagAction, MagState } from "../../services/magnetronGameTypes"
+import { MagAction, MagState } from "../../services/magnetronServerService/magnetronGameTypes"
 
 type Props = {
     className?: string

@@ -2,8 +2,8 @@ import styled from "styled-components"
 import MagnetronTitleLogo from "../MagnetronTitleLogo"
 import React, { PropsWithChildren } from "react"
 import { MagnetColor } from "../../magnetronGameStyle"
-import { MagnetType } from "../../services/magnetronGameTypes"
 import { Link } from "react-router-dom"
+import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 
 export const Wrapper = styled.div`
     width: 100%;

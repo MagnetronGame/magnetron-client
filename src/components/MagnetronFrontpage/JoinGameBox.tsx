@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import styled from "styled-components"
 import { MagnetColor } from "../../magnetronGameStyle"
-import { MagnetType } from "../../services/magnetronGameTypes"
 import { Link } from "react-router-dom"
+import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 
 const Wrapper = styled.div`
     box-sizing: border-box;
@@ -70,7 +70,7 @@ const JoinGameBox = () => {
                     onChange={(e) => setInputPin(e.target.value)}
                 />
             </InputPinArea>
-            <JoinButton to={`/client/${inputPin}`}>Join game &rArr;</JoinButton>
+            <JoinButton to={`/client/lobby/${inputPin}`}>Join game &rArr;</JoinButton>
         </Wrapper>
     )
 }

@@ -1,5 +1,10 @@
 import React from "react"
-import { Avatar, MagnetPiece, MagnetType, Piece } from "../../services/magnetronGameTypes"
+import {
+    Avatar,
+    MagnetPiece,
+    MagnetType,
+    Piece,
+} from "../../services/magnetronServerService/magnetronGameTypes"
 import styled from "styled-components"
 import { MagnetColor } from "../../magnetronGameStyle"
 

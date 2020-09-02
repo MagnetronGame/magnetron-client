@@ -1,0 +1,107 @@
+import { MagAction, MagState } from "./magnetronGameTypes"
+
+const apiAddress = "http://localhost:8080"
+const apiPrefix = "/api"
+const apiUrl = `${apiAddress}${apiPrefix}`
+
+type CreateGameResponse = {
+    pin: string
+    accessToken: string
+}
+
+type JoinGameResponse = {
+    pin: string
+    accessToken: string
+    playerIndex: number
+}
+
+type Lobby = {
+    playersCount: number
+    players: string[]
+}
+
+export const createLobby = (): Promise<CreateGameResponse> =>
+    fetch(`${apiUrl}/createLobby`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((pin) => pin as CreateGameResponse)
+
+export const getLobby = (accessToken: string, pin: string): Promise<Lobby> =>
+    fetch(`${apiUrl}/lobby/${pin}`, {
+        method: "GET",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((lobby) => lobby as Lobby)
+
+export const startGame = (accessToken: string, pin: string): Promise<boolean> =>
+    fetch(`${apiUrl}/startGame/${pin}`, {
+        method: "POST",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+
+export const joinLobby = (pin: string, name: string): Promise<JoinGameResponse> =>
+    fetch(`${apiUrl}/joinLobby/${pin}`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: name,
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((resJ) => resJ as JoinGameResponse)
+
+export const lobbyExists = (accessToken: string, pin: string): Promise<boolean> =>
+    fetch(`${apiUrl}/lobbyExists/${pin}`, {
+        method: "GET",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((exists) => exists as boolean)
+
+export const gameExists = (accessToken: string, pin: string): Promise<boolean> =>
+    fetch(`${apiUrl}/gameExists/${pin}`, {
+        method: "GET",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((exists) => exists as boolean)
+
+export const gameState = (accessToken: string, pin: string): Promise<MagState> =>
+    fetch(`${apiUrl}/gameState/${pin}`, {
+        method: "GET",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((gameState) => gameState as MagState)
+
+export const possibleActions = (accessToken: string, pin: string): Promise<MagAction[]> =>
+    fetch(`${apiUrl}/possibleActions/${pin}`, {
+        method: "GET",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((actions) => actions as MagAction[])
+
+export const performAction = (
+    accessToken: string,
+    pin: string,
+    action: MagAction,
+): Promise<MagState> =>
+    fetch(`${apiUrl}/performAction/${pin}`, {
+        method: "POST",
+        headers: { "Content-type": "application/json", Authorization: accessToken },
+        body: JSON.stringify(action),
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((state) => state as MagState)

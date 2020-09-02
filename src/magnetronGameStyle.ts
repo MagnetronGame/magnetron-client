@@ -1,4 +1,4 @@
-import { MagnetType } from "./services/magnetronGameTypes"
+import { MagnetType } from "./services/magnetronServerService/magnetronGameTypes"
 
 export const MagnetColor: Record<MagnetType, string> = {
     [MagnetType.POSITIVE]: "#ff3c2d",

@@ -1,47 +1,31 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import MagnetronGame3d from "../MagnetronGame3d"
-import { useGameServerAsHost } from "../../services/gameServerService"
-import GameSetup from "./GameLobby"
 import { useRouteMatch } from "react-router-dom"
+import useGameServerHost from "../../services/magnetronServerService/useGameServerHost"
 
-type Props = {
-    shouldCreateGame: boolean
-}
+type Props = {}
 
 type RouterMatch = {
     pin: string
 }
 
-const MagnetronHost: React.FC<Props> = ({ shouldCreateGame }) => {
-    const urlPin = useRouteMatch<RouterMatch>().params.pin
-    const { createGame, pin, state, possibleActions, performAction } = useGameServerAsHost(urlPin)
+const MagnetronHost: React.FC<Props> = () => {
+    const pin = useRouteMatch<RouterMatch>().params.pin
+    const { gameAccessible, state, possibleActions } = useGameServerHost(pin)
 
-    useEffect(() => {
-        if (shouldCreateGame) {
-            createGame()
-        }
-    }, [createGame, shouldCreateGame])
+    const gameElem = state ? (
+        <MagnetronGame3d
+            magState={state}
+            possibleMagActions={possibleActions}
+            onMagAction={(action) => console.log("Cannot perform actions on the host")}
+        />
+    ) : (
+        <span>Waiting for server</span>
+    )
 
-    if (!pin) {
-        return <span>Waiting for server</span>
-    } else {
-        return (
-            <div style={{ height: "100%" }}>
-                {state ? (
-                    <MagnetronGame3d
-                        magState={state}
-                        possibleMagActions={possibleActions}
-                        onMagAction={(action) => console.log("Cannot perform actions on the host")}
-                    />
-                ) : (
-                    <GameSetup
-                        pin={pin}
-                        connectedPlayers={["Hanna Kai", "Eirik", "Gunnar", "Robert"]}
-                    />
-                )}
-            </div>
-        )
-    }
+    const invalidGameElem = <div>Could not connect to game :(</div>
+
+    return <div style={{ height: "100%" }}>{gameAccessible ? gameElem : invalidGameElem}</div>
 }
 
 export default MagnetronHost

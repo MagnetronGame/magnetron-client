@@ -5,7 +5,7 @@ import {
     MagnetType,
     Piece,
     StaticPieces,
-} from "../../services/magnetronGameTypes"
+} from "../../services/magnetronServerService/magnetronGameTypes"
 import * as THREE from "three"
 import { StaticBoard } from "./board"
 import { MagnetColor } from "../../magnetronGameStyle"
