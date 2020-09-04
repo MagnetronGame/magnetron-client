@@ -1,8 +1,8 @@
 import React from "react"
 import styled from "styled-components"
-import useGameLobby from "../services/magnetronServerService/useGameLobby"
+import useGameLobby from "../../services/magnetronServerService/useGameLobby"
 import { useHistory, useRouteMatch, Redirect } from "react-router-dom"
-import { Access } from "../services/magnetronServerService/helpers"
+import { Access } from "../../services/magnetronServerService/helpers"
 
 type Props = {}
 

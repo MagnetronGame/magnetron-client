@@ -1,11 +1,11 @@
 import * as THREE from "three"
-import { range } from "../../utils/arrayUtils"
+import { range } from "../../../utils/arrayUtils"
 import {
     MagState,
     Piece,
     StaticPieces,
     Vec2I,
-} from "../../services/magnetronServerService/magnetronGameTypes"
+} from "../../../services/magnetronServerService/magnetronGameTypes"
 import { createVisPiece, EmptyVisPiece, VisPiece } from "./visPieces"
 import { ChainedAnimations } from "./chainedAnimations"
 import { BoardGroupAnimation } from "./boardGroupAnimation"

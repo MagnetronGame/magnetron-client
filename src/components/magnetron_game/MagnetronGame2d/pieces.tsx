@@ -4,9 +4,9 @@ import {
     MagnetPiece,
     MagnetType,
     Piece,
-} from "../../services/magnetronServerService/magnetronGameTypes"
+} from "../../../services/magnetronServerService/magnetronGameTypes"
 import styled from "styled-components"
-import { MagnetColor } from "../../magnetronGameStyle"
+import { MagnetColor } from "../../../magnetronGameStyle"
 
 const MagnetPiecePosComp: React.FC<{
     className?: string

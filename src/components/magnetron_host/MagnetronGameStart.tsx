@@ -1,9 +1,9 @@
 import React from "react"
-import useGameCreate from "../services/magnetronServerService/useGameCreate"
+import useGameCreate from "../../services/magnetronServerService/useGameStart"
 import { useRouteMatch, Redirect } from "react-router-dom"
-import { Access } from "../services/magnetronServerService/helpers"
+import { Access } from "../../services/magnetronServerService/helpers"
 
-const MagnetronGameCreate = () => {
+const MagnetronGameStart = () => {
     const routeParams = useRouteMatch<{ pin?: string }>().params
     const pin = routeParams.pin
     const gameAccess = useGameCreate(pin || "")
@@ -22,4 +22,4 @@ const MagnetronGameCreate = () => {
     )
 }
 
-export default MagnetronGameCreate
+export default MagnetronGameStart

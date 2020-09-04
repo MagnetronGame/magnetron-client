@@ -4,11 +4,14 @@ import * as api from "./gameServerApi"
 
 const cookies = new Cookies("all")
 
-export const getAccessTokenCookie = (): string | undefined =>
-    cookies.get("access-token") as string | undefined
+let storedAccessToken: string | undefined = undefined
+
+export const getAccessTokenCookie = (): string | undefined => storedAccessToken
+// cookies.get("access-token") as string | undefined
 
 export const setAccessTokenCookie = (accessToken: string | undefined) => {
-    cookies.set("access-token", accessToken, { path: "/" })
+    storedAccessToken = accessToken
+    // cookies.set("access-token", accessToken, { path: "/" })
 }
 
 export enum Access {

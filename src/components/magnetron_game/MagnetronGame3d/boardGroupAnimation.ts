@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { StaticBoard } from "./board"
 import { VisBoardPlate, resetBoardObjectCellPositions } from "./boardVisObject"
-import { range } from "../../utils/arrayUtils"
+import { range } from "../../../utils/arrayUtils"
 import { Animation } from "./animation"
 import { Magnetron } from "./magnetron"
 

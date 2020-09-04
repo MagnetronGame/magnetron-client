@@ -1,5 +1,5 @@
 import React from "react"
-import useCreateLobby from "../services/magnetronServerService/useCreateLobby"
+import useCreateLobby from "../../services/magnetronServerService/useCreateLobby"
 import { Redirect } from "react-router-dom"
 
 const MagnetronLobbyCreate = () => {

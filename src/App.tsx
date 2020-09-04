@@ -1,19 +1,24 @@
 import React from "react"
-import MagnetronHost from "./components/MagnetronHost"
+import MagnetronHost from "./components/magnetron_host/MagnetronHost"
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 import MagnetronFrontPage from "./components/MagnetronFrontpage"
-import MagnetronClient from "./components/MagnetronClient"
-import MagnetronLobbyClient from "./components/MagnetronLobbyClient"
-import MagnetronLobbyHost from "./components/MagnetronLobbyHost"
-import MagnetronLobbyCreate from "./components/MagnetronLobbyCreate"
-import MagnetronGameCreate from "./components/MagnetronGameCreate"
-import MagnetronLobbyJoin from "./components/MagnetronLobbyJoin"
+import MagnetronClient from "./components/magnetron_client/MagnetronClient"
+import MagnetronLobbyClient from "./components/magnetron_client/MagnetronLobbyClient"
+import MagnetronLobbyHost from "./components/magnetron_host/MagnetronLobbyHost"
+import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCreate"
+import MagnetronGameStart from "./components/magnetron_host/MagnetronGameStart"
+import MagnetronLobbyJoin from "./components/magnetron_client/MagnetronLobbyJoin"
+import MagnetronTestAll from "./components/magnetron_test/MagnetronTestAll"
 
 function App() {
     return (
         <div style={{ height: "100vh" }}>
             <Router>
                 <Switch>
+                    <Route exact path={"/"}>
+                        <MagnetronFrontPage />
+                    </Route>
+
                     <Route path={"/host/lobby/create"}>
                         <MagnetronLobbyCreate />
                     </Route>
@@ -22,8 +27,8 @@ function App() {
                         <MagnetronLobbyHost />
                     </Route>
 
-                    <Route path={"/host/game/create/:pin"}>
-                        <MagnetronGameCreate />
+                    <Route path={"/host/game/start/:pin"}>
+                        <MagnetronGameStart />
                     </Route>
                     <Route path={"/host/game/:pin"}>
                         <MagnetronHost />
@@ -39,8 +44,8 @@ function App() {
                         <MagnetronClient />
                     </Route>
 
-                    <Route path={"/"}>
-                        <MagnetronFrontPage />
+                    <Route path={"/test"}>
+                        <MagnetronTestAll />
                     </Route>
                 </Switch>
             </Router>

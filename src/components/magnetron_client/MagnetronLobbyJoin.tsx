@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Redirect, useRouteMatch } from "react-router-dom"
-import useJoinLobby from "../services/magnetronServerService/useJoinLobby"
-import { Access } from "../services/magnetronServerService/helpers"
+import useJoinLobby from "../../services/magnetronServerService/useJoinLobby"
+import { Access } from "../../services/magnetronServerService/helpers"
 
 const MagnetronLobbyJoin = () => {
     const routeParams = useRouteMatch<{ pin: string }>().params

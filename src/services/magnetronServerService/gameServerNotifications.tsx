@@ -23,6 +23,8 @@ stompClient.onDisconnect = (frame: IFrame) => {
 
 stompClient.onStompError = (frame: IFrame) => console.error("STOMP client error: ", frame)
 
+stompClient.activate()
+
 const useOnConnect = (callback: frameCallbackType) => {
     useEffect(() => {
         const _callback = callback
@@ -50,25 +52,10 @@ const useServerNotifications = (
     onNotification: () => void,
     notifyImmediately?: boolean,
 ) => {
-    console.log("Stomp client connected: ", stompClient.connected, "active", stompClient.active)
-    const [connecting, setConnecting] = useState<boolean>(
-        stompClient.active && !stompClient.connected,
-    )
     const [connected, setConnected] = useState<boolean>(stompClient.connected)
 
-    useOnConnect(() => {
-        setConnecting(false)
-        setConnected(true)
-    })
-    useOnDisconnect(() => setConnected(true))
-
-    useEffect(() => {
-        if (!connected && !connecting) {
-            console.log("Activating stomp")
-            setConnecting(true)
-            stompClient.activate()
-        }
-    }, [connected, connecting])
+    useOnConnect(() => setConnected(true))
+    useOnDisconnect(() => setConnected(false))
 
     useEffect(() => {
         if (connected) {
@@ -82,9 +69,11 @@ const useServerNotifications = (
             )
             console.log("Subscribed to:", path)
         }
+
         return () => {
             if (connected) {
                 stompClient.unsubscribe(path)
+                console.log("Unsubscribed from:", path)
             }
         }
     }, [connected, path, onNotification])

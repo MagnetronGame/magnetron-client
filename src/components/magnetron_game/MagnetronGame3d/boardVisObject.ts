@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { range } from "../../utils/arrayUtils"
+import { range } from "../../../utils/arrayUtils"
 import { StaticBoard } from "./board"
 
 export type VisBoardPlate = {
