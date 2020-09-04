@@ -1,25 +1,25 @@
-import React, { useEffect } from "react"
-import useGameLobbyClient from "../services/magnetronServerService/useGameLobbyClient"
-import { useRouteMatch } from "react-router-dom"
+import React from "react"
+import { useRouteMatch, Redirect } from "react-router-dom"
+import useGameLobby from "../services/magnetronServerService/useGameLobby"
+import { Access } from "../services/magnetronServerService/helpers"
 
 const MagnetronLobbyClient = () => {
     const routeParams = useRouteMatch<{ pin: string }>().params
     const pin = routeParams.pin
-    const { joinLobby, pinValid, lobbyJoined, playerIndex, gameReady } = useGameLobbyClient(pin)
+    const { lobbyAccess, gameStarted } = useGameLobby(pin)
 
-    useEffect(() => {
-        if (!lobbyJoined) {
-            joinLobby("Frank")
-        }
-    }, [lobbyJoined, joinLobby])
+    const message =
+        lobbyAccess === Access.CHECKING
+            ? "Rwo sec..."
+            : lobbyAccess === Access.NOT_ACCESSIBLE
+            ? "Could not enter lobby"
+            : "In lobby! Waiting for host"
 
-    const message = !pinValid
-        ? `Invalid pin: ${pin}`
-        : !lobbyJoined
-        ? "Waiting for server..."
-        : "In lobby! Waiting for host"
-
-    return <div style={{ textAlign: "center" }}>{message}</div>
+    return gameStarted ? (
+        <Redirect to={`client/game/${pin}`} />
+    ) : (
+        <div style={{ textAlign: "center" }}>{message}</div>
+    )
 }
 
 export default MagnetronLobbyClient

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import MagnetronGame2d from "./MagnetronGame2d"
-import { Link, useLocation, useRouteMatch, useParams } from "react-router-dom"
-import useGameServerClient from "../services/magnetronServerService/useGameServerClient"
+import { Link, useRouteMatch } from "react-router-dom"
+import useGameServer from "../services/magnetronServerService/useGameServer"
+import { Access } from "../services/magnetronServerService/helpers"
 
 type Props = {}
 type RouteMatch = { pin: string; playerIndex: string }
@@ -11,18 +12,15 @@ const MagnetronClient: React.FC<Props> = () => {
     const pin = params.pin
     const playerIndex = parseInt(params.playerIndex)
 
-    const { gameAccessible, myTurn, state, possibleActions, performAction } = useGameServerClient(
-        pin,
-        playerIndex,
-    )
+    const { gameAccess, state, possibleActions, performAction } = useGameServer(pin, playerIndex)
 
-    const message: string | undefined =
-        gameAccessible === undefined
+    const message =
+        gameAccess === Access.CHECKING
             ? "Two sec..."
-            : !gameAccessible
+            : gameAccess === Access.NOT_ACCESSIBLE
             ? "Could not connect to game :("
             : !state
-            ? "Waiting for game"
+            ? "Let's go!"
             : undefined
 
     const messageElem = (

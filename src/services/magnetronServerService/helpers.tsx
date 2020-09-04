@@ -11,6 +11,12 @@ export const setAccessTokenCookie = (accessToken: string | undefined) => {
     cookies.set("access-token", accessToken, { path: "/" })
 }
 
+export enum Access {
+    CHECKING = "CHECKING",
+    ACCESSIBLE = "ACCESSIBLE",
+    NOT_ACCESSIBLE = "NOT_ACCESSIBLE",
+}
+
 export const useGameAccessible = (
     gameState: "LOBBY" | "GAME",
     pin: string | undefined,

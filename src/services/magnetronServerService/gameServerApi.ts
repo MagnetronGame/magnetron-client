@@ -1,6 +1,6 @@
 import { MagAction, MagState } from "./magnetronGameTypes"
 
-const apiAddress = "http://localhost:8080"
+export const apiAddress = "http://localhost:8080"
 const apiPrefix = "/api"
 const apiUrl = `${apiAddress}${apiPrefix}`
 
@@ -74,14 +74,22 @@ export const gameExists = (accessToken: string, pin: string): Promise<boolean> =
         .then((res) => res.json())
         .then((exists) => exists as boolean)
 
-export const gameState = (accessToken: string, pin: string): Promise<MagState> =>
-    fetch(`${apiUrl}/gameState/${pin}`, {
+export const gameState = (
+    accessToken: string,
+    pin: string,
+    playerIndex?: number,
+): Promise<MagState> => {
+    const endpoint = playerIndex
+        ? `${apiUrl}/gameState/${pin}/${playerIndex}`
+        : `${apiUrl}/gameState/${pin}`
+    return fetch(endpoint, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
         .then((res) => (res.ok ? res : Promise.reject(res)))
         .then((res) => res.json())
         .then((gameState) => gameState as MagState)
+}
 
 export const possibleActions = (accessToken: string, pin: string): Promise<MagAction[]> =>
     fetch(`${apiUrl}/possibleActions/${pin}`, {

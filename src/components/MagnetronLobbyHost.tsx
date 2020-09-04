@@ -1,11 +1,10 @@
-import React, { useEffect } from "react"
+import React from "react"
 import styled from "styled-components"
-import useGameLobbyHost from "../services/magnetronServerService/useGameLobbyHost"
-import { useRouteMatch, useHistory } from "react-router-dom"
+import useGameLobby from "../services/magnetronServerService/useGameLobby"
+import { useHistory, useRouteMatch, Redirect } from "react-router-dom"
+import { Access } from "../services/magnetronServerService/helpers"
 
-type Props = {
-    shouldCreateLobby?: boolean
-}
+type Props = {}
 
 const Wrapper = styled.div`
     height: 100%;
@@ -40,38 +39,22 @@ const Player = styled.li`
     font-family: inherit;
 `
 
-const MagnetronLobbyHost: React.FC<Props> = ({ shouldCreateLobby }) => {
-    const history = useHistory()
-    const routeParams = useRouteMatch<{ pin?: string }>().params
-    const existingPin = routeParams.pin
+const MagnetronLobbyHost: React.FC<Props> = () => {
+    const routeParams = useRouteMatch<{ pin: string }>().params
+    const pin = routeParams.pin
 
-    const {
-        createGame,
-        lobbyAccessible,
-        pin,
-        connectedPlayers,
-        startGame,
-        gameReady,
-    } = useGameLobbyHost(existingPin)
-
-    useEffect(() => {
-        if (shouldCreateLobby) {
-            if (!pin) {
-                createGame()
-            } else {
-                history.push(`/host/lobby/${pin}`)
-            }
-        }
-    }, [shouldCreateLobby, pin, createGame, history])
+    const { lobbyAccess, connectedPlayers, gameReady } = useGameLobby(pin || "")
 
     const message =
-        lobbyAccessible === undefined
+        lobbyAccess === Access.CHECKING
             ? "Waiting for server..."
-            : !lobbyAccessible
+            : lobbyAccess === Access.NOT_ACCESSIBLE
             ? `Invalid pin: ${pin}`
             : undefined
 
-    return message ? (
+    return gameReady ? (
+        <Redirect to={`/host/game/create/${pin}`} />
+    ) : message ? (
         <div style={{ textAlign: "center" }}>{message}</div>
     ) : (
         <Wrapper>

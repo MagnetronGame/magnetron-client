@@ -70,7 +70,7 @@ const JoinGameBox = () => {
                     onChange={(e) => setInputPin(e.target.value)}
                 />
             </InputPinArea>
-            <JoinButton to={`/client/lobby/${inputPin}`}>Join game &rArr;</JoinButton>
+            <JoinButton to={`/client/lobby/join/${inputPin}`}>Join game &rArr;</JoinButton>
         </Wrapper>
     )
 }

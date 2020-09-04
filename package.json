@@ -5,6 +5,7 @@
   "dependencies": {
     "@avatsaev/three-orbitcontrols-ts": "^0.1.5",
     "@kibou/three-orbitcontrols-ts": "^0.2.8",
+    "@stomp/stompjs": "^5.4.4",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -13,6 +14,7 @@
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^5.1.5",
+    "@types/sockjs-client": "^1.1.1",
     "@types/styled-components": "^5.1.2",
     "@types/three": "^0.103.2",
     "@types/universal-cookie": "^2.2.0",
@@ -20,6 +22,7 @@
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
+    "sockjs-client": "^1.5.0",
     "styled-components": "^5.1.1",
     "three": "^0.119.1",
     "typescript": "~3.7.2",
