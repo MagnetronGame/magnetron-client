@@ -1,5 +1,5 @@
 import React from "react"
-import MagnetronGame2d from "./MagnetronGame2d"
+import MagnetronGame2d from "./magnetron_game/MagnetronGame2d"
 import { Link, useRouteMatch } from "react-router-dom"
 import useGameServer from "../services/magnetronServerService/useGameServer"
 import { Access } from "../services/magnetronServerService/helpers"

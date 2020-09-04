@@ -53,7 +53,7 @@ const MagnetronLobbyHost: React.FC<Props> = () => {
             : undefined
 
     return gameReady ? (
-        <Redirect to={`/host/game/create/${pin}`} />
+        <Redirect to={`/host/game/start/${pin}`} />
     ) : message ? (
         <div style={{ textAlign: "center" }}>{message}</div>
     ) : (
