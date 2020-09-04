@@ -1,7 +1,7 @@
-import { IFrame, Stomp, Client } from "@stomp/stompjs"
+import { IFrame, Client } from "@stomp/stompjs"
 import { apiAddress } from "./gameServerApi"
 import SockJS from "sockjs-client"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
 
 let socket = new SockJS(`${apiAddress}/magnetron-notify`)
@@ -16,8 +16,10 @@ stompClient.onConnect = (frame: IFrame) => {
     console.log("WS connected! :)")
     onConnectCallbacks.forEach((callback) => callback(frame))
 }
-stompClient.onDisconnect = (frame: IFrame) =>
+stompClient.onDisconnect = (frame: IFrame) => {
+    console.log("WS disconnected :(")
     onDisconnectCallbacks.forEach((callback) => callback(frame))
+}
 
 stompClient.onStompError = (frame: IFrame) => console.error("STOMP client error: ", frame)
 
@@ -48,16 +50,25 @@ const useServerNotifications = (
     onNotification: () => void,
     notifyImmediately?: boolean,
 ) => {
+    console.log("Stomp client connected: ", stompClient.connected, "active", stompClient.active)
+    const [connecting, setConnecting] = useState<boolean>(
+        stompClient.active && !stompClient.connected,
+    )
     const [connected, setConnected] = useState<boolean>(stompClient.connected)
 
-    useOnConnect(() => setConnected(true))
-    useOnDisconnect(() => setConnected(false))
+    useOnConnect(() => {
+        setConnecting(false)
+        setConnected(true)
+    })
+    useOnDisconnect(() => setConnected(true))
 
     useEffect(() => {
-        if (!stompClient.connected) {
+        if (!connected && !connecting) {
+            console.log("Activating stomp")
+            setConnecting(true)
             stompClient.activate()
         }
-    }, [])
+    }, [connected, connecting])
 
     useEffect(() => {
         if (connected) {
