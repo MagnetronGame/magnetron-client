@@ -1,12 +1,19 @@
 import * as THREE from "three"
 import { Board } from "./board"
 import { Entity } from "./Entity"
-import { MagState } from "../../../services/magnetronServerService/magnetronGameTypes"
-import CameraOrbitControls from "./cameraOrbitControls"
-import { CameraMovement } from "./cameraMovement"
-import { CameraZoomRotate } from "./CameraZoomRotate"
-import { Animation } from "./animation"
-import { InlineAnimation, InlineAnimationType } from "./InlineAnimation"
+import {
+    Avatar,
+    MagState,
+    Piece,
+    Vec2I,
+} from "../../../services/magnetronServerService/magnetronGameTypes"
+import { InlineAnimation } from "./animation/InlineAnimation"
+import { ChainedAnimations } from "./animation/chainedAnimations"
+import { AnimationQueue } from "./animation/AnimationQueue"
+import { ChainedAnims } from "./animation/animationTypes"
+import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
+import { Anims } from "./animation/animationHelpers"
+import cameraMovementAnim from "./cameraMovementAnim"
 
 export class Magnetron {
     started = false
@@ -21,6 +28,8 @@ export class Magnetron {
     board: Board | null = null
 
     private entities: Entity[] = []
+    private animQueue: AnimationQueue
+
     private prevTimeMillis = 0
 
     constructor(rootElem: HTMLElement) {
@@ -49,6 +58,9 @@ export class Magnetron {
 
         this.scene = scene
         this.renderer = renderer
+
+        this.animQueue = new AnimationQueue()
+        this.addEntity(this.animQueue)
     }
 
     public addEntity(entity: Entity) {
@@ -67,14 +79,14 @@ export class Magnetron {
         light.position.set(-1, 2, 1)
         this.scene.add(light)
 
-        this.addEntity(
-            new InlineAnimation({
-                looping: true,
-                update: (game: Magnetron, deltaTime: number, currDuration) => {
-                    light.position.set(Math.cos(currDuration) * 3, 10, Math.sin(currDuration) * 3)
-                },
-            }),
-        )
+        // this.animQueue.add(
+        //     new InlineAnimation({
+        //         looping: true,
+        //         update: ({ currDuration }) => {
+        //             light.position.set(Math.cos(currDuration) * 3, 10, Math.sin(currDuration) * 3)
+        //         },
+        //     }),
+        // )
 
         const frontLightColor = 0xffffff
         const frontLightIntensity = 0.3
@@ -85,13 +97,15 @@ export class Magnetron {
         this.board = new Board(state)
         this.scene.add(this.board.visBoardContainer)
 
-        this.setState(state)
+        this.animQueue.add([
+            Anims.parallel([
+                this.board.getCreationAnimation(),
+                cameraZoomRotateAnim(this.camera, 2, 0.6, -Math.PI / 2, 1, 5),
+            ]),
+            cameraMovementAnim(this.camera),
+        ])
 
-        this.addEntity(
-            new CameraZoomRotate(2, 0.6, -Math.PI / 2, 1, 5).thenPlay(new CameraMovement()),
-        )
-
-        this.addEntity(this.board.getCreationAnimation())
+        this.updateState(state)
     }
 
     public startAndLoop(state: MagState) {
@@ -99,20 +113,55 @@ export class Magnetron {
         requestAnimationFrame(this.update)
     }
 
-    public setState(state: MagState) {
-        state.board.forEach((boardRow, y) =>
-            boardRow.forEach((piece, x) => {
-                const pos = { x, y }
-                this.board!.putPiece(piece, pos)
-            }),
+    private setState(state: MagState) {
+        const piecesChangeAnims = state.board.flatMap((boardRow, y) =>
+            boardRow
+                .map<[Piece, Vec2I]>((piece, x) => [piece, { x, y }])
+                .map(([piece, boardPos]) => [
+                    this.board!.getRemovePiecesAnimation(boardPos, "Avatar"),
+                    piece.type !== "EmptyPiece"
+                        ? this.board!.getAddPieceAnimation(piece, boardPos)
+                        : { duration: 0 },
+                ]),
         )
 
-        state.avatars.forEach((avatar, index) => {
-            const boardPos = state.avatarsBoardPosition[index]
-            this.board!.putPiece(avatar, boardPos)
-        })
+        const existingAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType("Avatar") as [
+            Avatar,
+            Vec2I,
+        ][]
+        const nonExistingAvatarPiecesWithPos = state.avatars
+            .map<[Avatar, Vec2I]>((_avatar, index) => [_avatar, state.avatarsBoardPosition[index]])
+            .filter(
+                ([_avatar, _]) =>
+                    !existingAvatarPiecesWithPos.some(
+                        ([existingAvatar, _]) =>
+                            existingAvatar.type === _avatar.type &&
+                            existingAvatar.index === _avatar.index,
+                    ),
+            )
 
-        // transition avatars
+        const createAvatarsAnimations: ChainedAnims = nonExistingAvatarPiecesWithPos.map(
+            ([avatar, boardPos]) => this.board!.getAddPieceAnimation(avatar, boardPos),
+        )
+
+        const stateUpdateAnims = [...piecesChangeAnims, ...createAvatarsAnimations]
+        this.animQueue.add(stateUpdateAnims)
+    }
+
+    public updateState(state: MagState) {
+        if (state.didSimulate) {
+            const moveAnims = state.simulationStates.map(
+                (simState) =>
+                    new InlineAnimation({
+                        duration: 1,
+                        start: () => this.setState(simState),
+                    }),
+            )
+            const simAnim = new ChainedAnimations(moveAnims)
+            this.addEntity(simAnim)
+        } else {
+            this.setState(state)
+        }
     }
 
     private start(state: MagState) {

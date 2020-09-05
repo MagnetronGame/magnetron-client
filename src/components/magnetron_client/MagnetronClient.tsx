@@ -8,9 +8,8 @@ type Props = {}
 type RouteMatch = { pin: string; playerIndex: string }
 
 const MagnetronClient: React.FC<Props> = () => {
-    const params = useRouteMatch<RouteMatch>().params
-    const pin = params.pin
-    const playerIndex = parseInt(params.playerIndex)
+    const { pin, playerIndex: playerIndexStr } = useRouteMatch<RouteMatch>().params
+    const playerIndex = parseInt(playerIndexStr)
 
     const { gameAccess, state, possibleActions, performAction } = useGameServer(pin, playerIndex)
 
@@ -40,11 +39,11 @@ const MagnetronClient: React.FC<Props> = () => {
 
     return (
         <div style={{ width: "100%", height: "100%" }}>
-            <span>
-                <Link to={"/"} style={{ textDecoration: "none" }}>
-                    &lArr; Back
-                </Link>
-            </span>
+            {/*<span>*/}
+            {/*    <Link to={"/"} style={{ textDecoration: "none", position: "absolute" }}>*/}
+            {/*        &lArr; Back*/}
+            {/*    </Link>*/}
+            {/*</span>*/}
             {message ? messageElem : gameElem}
         </div>
     )

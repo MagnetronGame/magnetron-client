@@ -1,4 +1,4 @@
-import { IFrame, Client } from "@stomp/stompjs"
+import { IFrame, Client, StompSubscription } from "@stomp/stompjs"
 import { apiAddress } from "./gameServerApi"
 import SockJS from "sockjs-client"
 import { useEffect, useState } from "react"
@@ -13,15 +13,14 @@ const onConnectCallbacks: frameCallbackType[] = []
 const onDisconnectCallbacks: frameCallbackType[] = []
 
 stompClient.onConnect = (frame: IFrame) => {
-    console.log("WS connected! :)")
     onConnectCallbacks.forEach((callback) => callback(frame))
 }
 stompClient.onDisconnect = (frame: IFrame) => {
-    console.log("WS disconnected :(")
     onDisconnectCallbacks.forEach((callback) => callback(frame))
 }
 
 stompClient.onStompError = (frame: IFrame) => console.error("STOMP client error: ", frame)
+stompClient.onWebSocketError = (event) => console.error("WS error: ", event)
 
 stompClient.activate()
 
@@ -58,22 +57,16 @@ const useServerNotifications = (
     useOnDisconnect(() => setConnected(false))
 
     useEffect(() => {
+        let subscription: StompSubscription | undefined
         if (connected) {
-            stompClient.subscribe(
-                path,
-                () => {
-                    console.log("Got notification for", path)
-                    onNotification()
-                },
-                { Authorization: "hei" },
-            )
-            console.log("Subscribed to:", path)
+            subscription = stompClient.subscribe(path, () => onNotification(), {
+                Authorization: "hei",
+            })
         }
 
         return () => {
-            if (connected) {
-                stompClient.unsubscribe(path)
-                console.log("Unsubscribed from:", path)
+            if (subscription && stompClient.connected) {
+                subscription.unsubscribe()
             }
         }
     }, [connected, path, onNotification])

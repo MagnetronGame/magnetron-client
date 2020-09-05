@@ -85,3 +85,8 @@ export interface MagAction {
     handPieceIndex: number
     boardPosition: Vec2I
 }
+
+export type MagStatePlayerView = {
+    playerIndex: number
+    state: MagState
+}

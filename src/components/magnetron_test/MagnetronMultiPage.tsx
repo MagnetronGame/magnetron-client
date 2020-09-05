@@ -17,7 +17,7 @@ const Wrapper = styled.div`
     grid-template-columns: 2fr repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
     grid-template-areas:
-        "host client1 client2"
+        "other client1 client2"
         "host client3 client4";
 `
 
@@ -26,9 +26,14 @@ type Props = {
     clientsPage: ReactNode[]
 }
 
-const MagnetronMultiPage: React.FC<Props> = ({ hostPage, clientsPage }) => {
+const MagnetronMultiPage: React.FC<React.PropsWithChildren<Props>> = ({
+    children,
+    hostPage,
+    clientsPage,
+}) => {
     return (
         <Wrapper>
+            <div style={{ gridArea: "other" }}>{children}</div>
             <div style={{ gridArea: "host" }}>{hostPage}</div>
             {clientsPage.map((clientPage, index) => (
                 <div key={index} style={{ gridArea: `client${index + 1}` }}>

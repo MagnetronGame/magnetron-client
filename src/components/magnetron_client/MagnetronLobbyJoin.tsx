@@ -1,13 +1,22 @@
-import React, { useState } from "react"
-import { Redirect, useRouteMatch } from "react-router-dom"
+import React, { useEffect, useState } from "react"
+import { Redirect, useRouteMatch, useParams, useLocation } from "react-router-dom"
 import useJoinLobby from "../../services/magnetronServerService/useJoinLobby"
 import { Access } from "../../services/magnetronServerService/helpers"
+import { parseQueryParams } from "../../utils/queryParser"
 
 const MagnetronLobbyJoin = () => {
     const routeParams = useRouteMatch<{ pin: string }>().params
     const pin = routeParams.pin
     const { joinAttempted, joinLobby, lobbyAccess, playerIndex } = useJoinLobby(pin)
     const [name, setName] = useState<string>("")
+    const { autoJoinName } = parseQueryParams(useLocation().search)
+
+    useEffect(() => {
+        if (autoJoinName) {
+            setName(autoJoinName)
+            joinLobby(autoJoinName)
+        }
+    }, [autoJoinName, joinLobby])
 
     const handleNameChange = (name: string) => {
         setName(name)

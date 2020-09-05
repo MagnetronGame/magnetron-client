@@ -1,5 +1,5 @@
-import { Magnetron } from "./magnetron"
-import { Entity } from "./Entity"
+import { Magnetron } from "../magnetron"
+import { Entity } from "../Entity"
 
 export abstract class Animation extends Entity {
     public readonly duration: number

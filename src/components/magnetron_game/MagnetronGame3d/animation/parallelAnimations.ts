@@ -1,5 +1,5 @@
 import { Animation } from "./animation"
-import { Magnetron } from "./magnetron"
+import { Magnetron } from "../magnetron"
 
 export class ParallelAnimations extends Animation {
     private animations: Animation[]

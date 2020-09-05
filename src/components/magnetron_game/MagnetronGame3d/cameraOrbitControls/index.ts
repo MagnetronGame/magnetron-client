@@ -1,4 +1,4 @@
-import { Animation } from "../animation"
+import { Animation } from "../animation/animation"
 import { Magnetron } from "../magnetron"
 import { OrbitControls } from "@kibou/three-orbitcontrols-ts"
 

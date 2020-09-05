@@ -2,16 +2,24 @@ import { useEffect, useState } from "react"
 import Cookies from "universal-cookie"
 import * as api from "./gameServerApi"
 
+let useCookie: boolean = false
+
+// Set to false to only allow accessToken in memory
+export const setUseCookie = (value: boolean) => {
+    useCookie = value
+}
+
 const cookies = new Cookies("all")
 
 let storedAccessToken: string | undefined = undefined
 
-export const getAccessTokenCookie = (): string | undefined => storedAccessToken
-// cookies.get("access-token") as string | undefined
+export const getAccessTokenCookie = (): string | undefined =>
+    useCookie ? (cookies.get("access-token") as string | undefined) : storedAccessToken
 
 export const setAccessTokenCookie = (accessToken: string | undefined) => {
-    storedAccessToken = accessToken
-    // cookies.set("access-token", accessToken, { path: "/" })
+    useCookie
+        ? cookies.set("access-token", accessToken, { path: "/" })
+        : (storedAccessToken = accessToken)
 }
 
 export enum Access {

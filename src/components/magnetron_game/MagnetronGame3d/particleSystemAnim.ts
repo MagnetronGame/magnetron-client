@@ -1,8 +1,9 @@
 import * as THREE from "three"
-import { Animation } from "./animation"
-import { Magnetron } from "./magnetron"
+import { SingleAnim } from "./animation/animationTypes"
 
-export class ParticleSystem extends Animation {
+export default class ParticleSystemAnim implements SingleAnim {
+    duration: number
+    parentObject: THREE.Object3D
     private particleCount = 1800
     private particlesGeom = new THREE.Geometry()
     private material: THREE.Material
@@ -11,13 +12,15 @@ export class ParticleSystem extends Animation {
     private distanceSpeedFactor: number
 
     constructor(
+        parentObject: THREE.Object3D,
         duration: number,
         position: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
         color: THREE.Color | string | number,
         size: number = 0.05,
         distanceSpeedFactor: number = 0.001,
     ) {
-        super(duration, false)
+        this.duration = duration
+        this.parentObject = parentObject
         this.position = position
 
         this.material = new THREE.PointsMaterial({
@@ -27,7 +30,7 @@ export class ParticleSystem extends Animation {
         this.distanceSpeedFactor = distanceSpeedFactor
     }
 
-    start(game: Magnetron) {
+    start() {
         // create the particle variables
 
         // now create the individual particles
@@ -44,13 +47,13 @@ export class ParticleSystem extends Animation {
         }
 
         // create the particle system
-        const particles = new THREE.Points(this.particlesGeom, this.material) //new THREE.ParticleSystem(particles, pMaterial)
+        const particles = new THREE.Points(this.particlesGeom, this.material) //new THREE.ParticleSystemAnim(particles, pMaterial)
         this.particlesWrapper.add(particles)
         this.particlesWrapper.position.copy(this.position)
-        game.scene.add(this.particlesWrapper)
+        this.parentObject.add(this.particlesWrapper)
     }
 
-    update(magnetron: Magnetron, deltaTime: number) {
+    update() {
         this.particlesGeom.vertices.forEach((particle) => {
             const distortMax = 0.01
             const distort = new THREE.Vector3(
@@ -65,7 +68,7 @@ export class ParticleSystem extends Animation {
         this.particlesGeom.verticesNeedUpdate = true
     }
 
-    protected end(game: Magnetron): void {
-        game.scene.remove(this.particlesWrapper)
+    end(): void {
+        this.parentObject.remove(this.particlesWrapper)
     }
 }

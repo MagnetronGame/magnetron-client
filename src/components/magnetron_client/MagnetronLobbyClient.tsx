@@ -4,8 +4,12 @@ import useGameLobby from "../../services/magnetronServerService/useGameLobby"
 import { Access } from "../../services/magnetronServerService/helpers"
 
 const MagnetronLobbyClient = () => {
-    const routeParams = useRouteMatch<{ pin: string }>().params
-    const pin = routeParams.pin
+    const { pin, playerIndex: playerIndexStr } = useRouteMatch<{
+        pin: string
+        playerIndex: string
+    }>().params
+    const playerIndex = parseInt(playerIndexStr)
+
     const { lobbyAccess, gameStarted, connectedPlayers } = useGameLobby(pin)
 
     const message =
@@ -16,7 +20,7 @@ const MagnetronLobbyClient = () => {
             : "In lobby! Waiting for host"
 
     return gameStarted ? (
-        <Redirect to={`client/game/${pin}`} />
+        <Redirect to={`/client/game/${pin}/${playerIndex}`} />
     ) : (
         <div style={{ textAlign: "center" }}>
             {message}

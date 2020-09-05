@@ -31,18 +31,23 @@ export default (pin: string, role: "HOST" | number): UseGameServer => {
         pin,
         useCallback(() => {
             if (accessToken) {
-                const playerIndex = role === "HOST" ? undefined : role
-                api.gameState(accessToken, pin, playerIndex).then((_state) => setState(_state))
+                if (role === "HOST") {
+                    api.gameState(accessToken, pin).then((_state) => setState(_state))
+                } else {
+                    api.gameStatePlayerView(accessToken, pin, role).then((_stateView) =>
+                        setState(_stateView.state),
+                    )
+                }
             }
         }, [accessToken, pin, role]),
         true,
     )
 
     useEffect(() => {
-        if (accessToken) {
+        if (accessToken && state) {
             api.possibleActions(accessToken, pin).then((actions) => setPossibleActions(actions))
         }
-    })
+    }, [accessToken, state])
 
     const performAction = useCallback(
         (action: MagAction) => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import * as api from "./gameServerApi"
 import { Access, getAccessTokenCookie } from "./helpers"
 import { useGameStarted, useLobbyGameReady, useLobbyNotification } from "./gameServerNotifications"
+import { Simulate } from "react-dom/test-utils"
 
 export type UseGameLobby = {
     lobbyAccess: Access
@@ -49,6 +50,26 @@ export default (pin: string): UseGameLobby => {
             setGameStarted(true)
         }, []),
     )
+
+    // Check if game started before we subscribed to notifications
+    useEffect(() => {
+        let timeoutHandle: number | undefined
+        if (accessToken) {
+            timeoutHandle = setTimeout(
+                () =>
+                    api
+                        .gameExists(accessToken, pin)
+                        .then((exists) => setGameStarted(exists))
+                        .catch(() => setGameStarted(false)),
+                1000,
+            )
+        }
+        return () => {
+            if (timeoutHandle) {
+                clearTimeout(timeoutHandle)
+            }
+        }
+    }, [accessToken, pin])
 
     return {
         lobbyAccess,

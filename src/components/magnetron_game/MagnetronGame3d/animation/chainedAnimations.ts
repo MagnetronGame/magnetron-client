@@ -1,9 +1,9 @@
 import { Animation } from "./animation"
-import { Magnetron } from "./magnetron"
+import { Magnetron } from "../magnetron"
 
 export class ChainedAnimations extends Animation {
     private readonly animations: Animation[]
-    private currAnimationIndex: number = 0
+    currAnimationIndex = 0
 
     constructor(animations: Animation[], looping: boolean = false) {
         super(
@@ -19,7 +19,7 @@ export class ChainedAnimations extends Animation {
     }
 
     update(game: Magnetron, deltaTime: number): void {
-        const currAnimation = this.animations[this.currAnimationIndex]
+        const currAnimation = this.animations[0]
         currAnimation.internalUpdate(game, deltaTime)
         if (currAnimation.shouldRemove) {
             currAnimation.internalEnd(game)

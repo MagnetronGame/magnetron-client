@@ -61,7 +61,7 @@ const MagnetronLobbyHost: React.FC<Props> = () => {
             <ShowPin>{pin}</ShowPin>
             <PlayersArea>
                 {connectedPlayers.map((name) => (
-                    <Player>{name}</Player>
+                    <Player key={name}>{name}</Player>
                 ))}
             </PlayersArea>
         </Wrapper>
