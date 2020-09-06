@@ -34,7 +34,7 @@ const positionCells = (
 export default (staticBoard: StaticBoard, boardObject: VisBoardPlate): Anim => ({
     duration: 4,
     update: ({ durationRatio, durationRatioInv }) => {
-        const durationRatioSquared = Math.pow(durationRatio, 10)
+        const durationRatioSquared = Math.pow(durationRatio, 20)
 
         const distanceFactor = 10 * (1 - durationRatioSquared) + 1
         const rotation = (Math.PI / 2) * durationRatioInv

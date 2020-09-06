@@ -15,6 +15,7 @@ export class SingleAnimationRunner extends AnimRunner {
     }
 
     public start = () => {
+        console.log(`Starting anim: ${this.anim.name || "anonymous"}`)
         this.anim.start &&
             this.anim.start({
                 duration: this.duration,

@@ -12,6 +12,7 @@ export type AnimUpdateProps = AnimStdProps & {
 }
 
 export type SingleAnim = {
+    name?: string
     duration?: number
     start?: (props: AnimStdProps) => void
     update?: (props: AnimUpdateProps) => void

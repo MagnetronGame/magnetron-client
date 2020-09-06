@@ -14,6 +14,7 @@ import { Anims } from "./animation/animationHelpers"
 import ShakeAnimation from "./ShakeAnimation"
 import ParticleSystemAnim from "./particleSystemAnim"
 import opacityAnim from "./opacityAnim"
+import * as vec2i from "../../../utils/vec2IUtils"
 
 export class Board {
     public readonly staticBoard: StaticBoard
@@ -22,8 +23,9 @@ export class Board {
     public readonly visBoardContainer: THREE.Group
 
     readonly pieces: VisPiece[][][]
+    readonly pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean
 
-    constructor(state: MagState) {
+    constructor(state: MagState, pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean) {
         this.staticBoard = createStaticBoard(state)
         this.visBoardPlate = boardVisObject(this.staticBoard)
         this.visPiecesContainer = new THREE.Group()
@@ -38,6 +40,8 @@ export class Board {
         this.pieces = range(state.staticState.boardWidth).map((x) =>
             range(state.staticState.boardHeight).map((y) => []),
         )
+
+        this.pieceEqualsFunc = pieceEqualsFunc
     }
 
     public getCreationAnimation(): Anim {
@@ -69,63 +73,73 @@ export class Board {
         return boardCreationAnimation
     }
 
-    public getAddPieceAnimation(piece: Piece, boardPos: Vec2I): Anim {
+    public addPiece(piece: Piece, boardPos: Vec2I, instant?: boolean): Anim {
+        const visPiece = createVisPiece(piece, this.staticBoard)
+        this.attachVisPiece(visPiece, boardPos)
         const anim: SingleAnim = {
-            duration: 0.5,
+            name: `Add piece at ${vec2i.toString(boardPos)}: ${visPiece.pieceData.type}`,
+            duration: instant ? 0 : 0.5,
             start: () => {
-                const visPiece = createVisPiece(piece, this.staticBoard)
-                this.attachVisPiece(visPiece, boardPos)
                 this.addVisPieceGraphics(visPiece, boardPos)
             },
         }
         return anim
     }
 
-    public getRemovePiecesAnimation(boardPos: Vec2I, exceptType: string): Anim {
+    public removePieces(boardPos: Vec2I, exceptType?: string, instant?: boolean): Anim {
         const visPieces = this.getVisPieces(boardPos).filter(
             (_visPiece) => _visPiece.type !== exceptType,
         )
+        visPieces.forEach((visPiece) => this.detachVisPiece(visPiece, boardPos))
 
         const anims: ChainedAnims = visPieces.map((visPiece) => ({
-            duration: 0.5,
-            start: () => {
-                this.detachVisPiece(visPiece, boardPos)
-                this.removeVisPieceGraphics(visPiece)
-            },
+            name: `Remove piece at ${vec2i.toString(boardPos)}: ${visPiece.pieceData.type}`,
+            duration: instant ? 0 : 0.1,
+            start: () => this.removeVisPieceGraphics(visPiece),
         }))
         return anims
     }
 
-    public getMovePieceAnimation(piece: Piece, fromBoardPos: Vec2I, toBoardPos: Vec2I): Anim {
-        const possiblePieces = this.getVisPieces(fromBoardPos)
-        const visPiece = possiblePieces.find((_visPiece) => deepEquals(_visPiece.pieceData, piece))
-        if (visPiece) {
-            const fromPos = this.boardPosToActualPos(fromBoardPos)
-            const toPos = this.boardPosToActualPos(toBoardPos)
-            const moveAnim: SingleAnim = {
-                duration: 1,
-                start: () => {
-                    this.retatchVisPiece(visPiece, fromBoardPos, toBoardPos)
-                },
-                update: ({ currDuration, duration }) => {
-                    const durationRatio = currDuration / duration
-                    const intermediatePos = fromPos
-                        .clone()
-                        .multiplyScalar(1 - durationRatio)
-                        .add(toPos.clone().multiplyScalar(durationRatio))
-                    visPiece.pieceObject.position.copy(intermediatePos)
-                },
-                end: () => {
-                    visPiece.pieceObject.position.copy(toPos)
-                },
-            }
+    public movePiece(piece: Piece, fromBoardPos: Vec2I, toBoardPos: Vec2I): Anim {
+        const visPiece = this.getVisPiece(fromBoardPos, piece)
+        if (!visPiece) {
+            throw Error(
+                `Trying to move piece that is not present. Piece type: ${
+                    piece.type
+                }, from boardPosition: ${vec2i.toString(fromBoardPos)}`,
+            )
+        }
+        this.retatchVisPiece(visPiece, fromBoardPos, toBoardPos)
+        const fromPos = this.boardPosToActualPos(fromBoardPos)
+        const toPos = this.boardPosToActualPos(toBoardPos)
+        const moveAnim: SingleAnim = {
+            name: `Move piece ${visPiece.pieceData.type} from ${vec2i.toString(
+                fromBoardPos,
+            )} to ${vec2i.toString(toBoardPos)}`,
+            duration: 1,
+            update: ({ currDuration, duration }) => {
+                const durationRatio = currDuration / duration
+                const intermediatePos = fromPos
+                    .clone()
+                    .multiplyScalar(1 - durationRatio)
+                    .add(toPos.clone().multiplyScalar(durationRatio))
+                visPiece.pieceObject.position.copy(intermediatePos)
+            },
+            end: () => {
+                visPiece.pieceObject.position.copy(toPos)
+            },
+        }
 
-            return moveAnim
-        } else throw new Error("Trying to create a move animation for a piece not on the board")
+        return moveAnim
     }
 
     public getPieces(boardPos: Vec2I): Piece[] {
         return this.getVisPieces(boardPos).map((visPiece) => visPiece.pieceData)
+    }
+
+    public hasOnlyPiece(boardPos: Vec2I, piece: Piece): boolean {
+        const pieces = this.getPieces(boardPos)
+        return pieces.length === 1 && this.pieceEqualsFunc(pieces[0], piece)
     }
 
     public getPiecesWithPosOfType(type: string): [Piece, Vec2I][] {
@@ -177,6 +191,14 @@ export class Board {
 
     private setVisPieces(boardPos: Vec2I, visPieces: VisPiece[]) {
         this.pieces[boardPos.x][boardPos.y] = visPieces
+    }
+
+    private getVisPiece(boardPos: Vec2I, piece: Piece): VisPiece | null {
+        return (
+            this.getVisPieces(boardPos).find((_visPiece) =>
+                this.pieceEqualsFunc(_visPiece.pieceData, piece),
+            ) || null
+        )
     }
 }
 

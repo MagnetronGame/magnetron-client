@@ -3,6 +3,7 @@ import { Board } from "./board"
 import { Entity } from "./Entity"
 import {
     Avatar,
+    MagnetPiece,
     MagState,
     Piece,
     Vec2I,
@@ -14,6 +15,7 @@ import { ChainedAnims } from "./animation/animationTypes"
 import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
 import { Anims } from "./animation/animationHelpers"
 import cameraMovementAnim from "./cameraMovementAnim"
+import * as vec2i from "../../../utils/vec2IUtils"
 
 export class Magnetron {
     started = false
@@ -94,7 +96,7 @@ export class Magnetron {
         frontLight.position.set(0, 0, 10)
         this.scene.add(frontLight)
 
-        this.board = new Board(state)
+        this.board = new Board(state, this.pieceEquals)
         this.scene.add(this.board.visBoardContainer)
 
         this.animQueue.add([
@@ -113,38 +115,85 @@ export class Magnetron {
         requestAnimationFrame(this.update)
     }
 
+    private pieceEquals = (piece: Piece, other: Piece): boolean => {
+        if (piece.type !== other.type) {
+            return false
+        }
+        switch (piece.type) {
+            case "Avatar":
+                return (piece as Avatar).index === (other as Avatar).index
+            case "MagnetPiece":
+                return (piece as MagnetPiece).magnetType === (other as MagnetPiece).magnetType
+            case "CoinPiece":
+            case "EmptyPiece":
+                return true
+            default:
+                return false
+        }
+    }
+
     private setState(state: MagState) {
         const piecesChangeAnims = state.board.flatMap((boardRow, y) =>
             boardRow
                 .map<[Piece, Vec2I]>((piece, x) => [piece, { x, y }])
-                .map(([piece, boardPos]) => [
-                    this.board!.getRemovePiecesAnimation(boardPos, "Avatar"),
-                    piece.type !== "EmptyPiece"
-                        ? this.board!.getAddPieceAnimation(piece, boardPos)
-                        : { duration: 0 },
-                ]),
+                .filter(([piece, boardPos]) => !this.board!.hasOnlyPiece(boardPos, piece))
+                .map(
+                    ([piece, boardPos]) =>
+                        [
+                            this.board!.removePieces(boardPos, "Avatar", true),
+                            piece.type !== "EmptyPiece"
+                                ? this.board!.addPiece(piece, boardPos, true)
+                                : null,
+                        ].filter((anim) => !!anim) as ChainedAnims,
+                ),
         )
 
-        const existingAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType("Avatar") as [
+        const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType("Avatar") as [
             Avatar,
             Vec2I,
         ][]
+        const boardAvatarPieces = boardAvatarPiecesWithPos.map(([_a, _]) => _a)
+
+        const anyAvatarEquals = (a1: Avatar, others: Avatar[]) =>
+            others.some((_a) => this.pieceEquals(_a, a1))
+
         const nonExistingAvatarPiecesWithPos = state.avatars
             .map<[Avatar, Vec2I]>((_avatar, index) => [_avatar, state.avatarsBoardPosition[index]])
-            .filter(
-                ([_avatar, _]) =>
-                    !existingAvatarPiecesWithPos.some(
-                        ([existingAvatar, _]) =>
-                            existingAvatar.type === _avatar.type &&
-                            existingAvatar.index === _avatar.index,
-                    ),
-            )
+            .filter(([_avatar, _]) => !anyAvatarEquals(_avatar, boardAvatarPieces))
 
-        const createAvatarsAnimations: ChainedAnims = nonExistingAvatarPiecesWithPos.map(
-            ([avatar, boardPos]) => this.board!.getAddPieceAnimation(avatar, boardPos),
+        const existingAvatarPiecesWithOldPos = boardAvatarPiecesWithPos.filter(([_avatar, _]) =>
+            anyAvatarEquals(_avatar, state.avatars),
         )
 
-        const stateUpdateAnims = [...piecesChangeAnims, ...createAvatarsAnimations]
+        const existingAvatarPiecesWithNewOldPos = existingAvatarPiecesWithOldPos.map<
+            [Avatar, Vec2I, Vec2I]
+        >(([existingAvatar, oldPos]) => {
+            const newAvatarIndex = state.avatars.findIndex((newAvatar) =>
+                this.pieceEquals(existingAvatar, newAvatar),
+            )
+            if (newAvatarIndex !== -1) {
+                const newPos = state.avatarsBoardPosition[newAvatarIndex]
+                return [existingAvatar, newPos, oldPos]
+            } else throw Error(`Could not find avatar: ${existingAvatar.index}`)
+        })
+
+        const createAvatarsAnimations: ChainedAnims = nonExistingAvatarPiecesWithPos.map(
+            ([avatar, boardPos]) => this.board!.addPiece(avatar, boardPos),
+        )
+
+        const moveAvatarsAnims: ChainedAnims = existingAvatarPiecesWithNewOldPos
+            .filter(([, newBoardPos, oldBoardPos]) => !vec2i.equals(newBoardPos, oldBoardPos))
+            .map(([avatar, newBoardPos, oldBoardPos]) => [
+                { duration: 0.5 },
+                this.board!.movePiece(avatar, oldBoardPos, newBoardPos),
+                { duration: 0.5 },
+            ])
+
+        const stateUpdateAnims = [
+            ...createAvatarsAnimations,
+            ...moveAvatarsAnims,
+            ...piecesChangeAnims,
+        ]
         this.animQueue.add(stateUpdateAnims)
     }
 
