@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import * as api from "./gameServerApi"
-import { Access, setAccessTokenCookie } from "./helpers"
+import { Access } from "./helpers"
+import { cookies } from "../cookies"
 
 export default (
     pin: string,
@@ -19,7 +20,7 @@ export default (
             setJoinAttempted(true)
             api.joinLobby(pin, name)
                 .then(({ pin: _pin, accessToken: _accessToken, playerIndex: _playerIndex }) => {
-                    setAccessTokenCookie(_accessToken)
+                    cookies.accessToken.set(_accessToken)
                     setPlayerIndex(_playerIndex)
                     setLobbyAccess(Access.ACCESSIBLE)
                 })

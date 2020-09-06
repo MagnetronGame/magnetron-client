@@ -1,8 +1,9 @@
 import { MagAction, MagState } from "./magnetronGameTypes"
 import { useCallback, useEffect, useState } from "react"
 import * as api from "./gameServerApi"
-import { Access, getAccessTokenCookie } from "./helpers"
+import { Access } from "./helpers"
 import { useGameStateUpdate } from "./gameServerNotifications"
+import { cookies } from "../cookies"
 
 type UseGameServer = {
     gameAccess: Access
@@ -12,7 +13,7 @@ type UseGameServer = {
 }
 
 export default (pin: string, role: "HOST" | number): UseGameServer => {
-    const accessToken = getAccessTokenCookie()
+    const accessToken = cookies.accessToken.get()
     const [gameAccess, setGameAccess] = useState<Access>(
         accessToken ? Access.CHECKING : Access.NOT_ACCESSIBLE,
     )

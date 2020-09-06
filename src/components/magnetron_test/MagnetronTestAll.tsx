@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import MagnetronMultiPage from "./MagnetronMultiPage"
-import { useLocation, useRouteMatch } from "react-router-dom"
 import { range } from "../../utils/arrayUtils"
 import styled from "styled-components"
-import { setUseCookie } from "../../services/magnetronServerService/helpers"
 
 const FrameWrapper = styled.div`
     width: 100%;
@@ -47,13 +45,20 @@ const GameFrame: React.FC<{ title: string; src: string }> = ({ title, src }) => 
 }
 
 const MagnetronTestAll = () => {
-    const [hostUrl, setHostUrl] = useState<string>(window.location.origin)
-    const [clientsUrl, setClientsUrl] = useState<string[]>(range(4).map(() => hostUrl))
+    const [hostUrl, setHostUrl] = useState<string>(
+        `${window.location.origin}?cookiePrefix=test-host`,
+    )
+    const [clientsUrl, setClientsUrl] = useState<string[]>(
+        range(4).map((index) => `${window.location.origin}?cookiePrefix=test-client${index}`),
+    )
     const [inputPin, setInputPin] = useState<string>("")
 
     const handleClientsJoin = () => {
         setClientsUrl((curl) =>
-            curl.map((_, index) => `client/lobby/join/${inputPin}?autoJoinName=frank${index}`),
+            curl.map(
+                (_, index) =>
+                    `client/lobby/join/${inputPin}?autoJoinName=frank${index}&cookiePrefix=test-client${index}`,
+            ),
         )
     }
 

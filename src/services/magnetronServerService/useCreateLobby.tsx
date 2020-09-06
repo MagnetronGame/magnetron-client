@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import * as api from "./gameServerApi"
-import { setAccessTokenCookie } from "./helpers"
+import { cookies } from "../cookies"
 
 type Return = {
     pin: string | undefined
@@ -10,7 +10,7 @@ export default (): Return => {
 
     useEffect(() => {
         api.createLobby().then(({ pin: _pin, accessToken: _accessToken }) => {
-            setAccessTokenCookie(_accessToken)
+            cookies.accessToken.set(_accessToken)
             setPin(_pin)
         })
     }, [])

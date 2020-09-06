@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
 import * as api from "./gameServerApi"
-import { Access, getAccessTokenCookie } from "./helpers"
+import { Access } from "./helpers"
 import { useGameStarted, useLobbyGameReady, useLobbyNotification } from "./gameServerNotifications"
 import { Simulate } from "react-dom/test-utils"
+import { cookies } from "../cookies"
 
 export type UseGameLobby = {
     lobbyAccess: Access
@@ -11,7 +12,7 @@ export type UseGameLobby = {
     gameStarted: boolean
 }
 export default (pin: string): UseGameLobby => {
-    const accessToken = getAccessTokenCookie()
+    const accessToken = cookies.accessToken.get()
     const [lobbyAccess, setLobbyAccess] = useState<Access>(
         accessToken ? Access.CHECKING : Access.NOT_ACCESSIBLE,
     )

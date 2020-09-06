@@ -1,6 +1,6 @@
 import React from "react"
 import MagnetronHost from "./components/magnetron_host/MagnetronHost"
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
+import { BrowserRouter as Router, Route, Switch, useLocation } from "react-router-dom"
 import MagnetronFrontPage from "./components/MagnetronFrontpage"
 import MagnetronClient from "./components/magnetron_client/MagnetronClient"
 import MagnetronLobbyClient from "./components/magnetron_client/MagnetronLobbyClient"
@@ -9,8 +9,15 @@ import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCrea
 import MagnetronGameStart from "./components/magnetron_host/MagnetronGameStart"
 import MagnetronLobbyJoin from "./components/magnetron_client/MagnetronLobbyJoin"
 import MagnetronTestAll from "./components/magnetron_test/MagnetronTestAll"
+import { parseQueryParams } from "./utils/queryParser"
+import { setCookiePrefix } from "./services/cookies"
 
 function App() {
+    const { cookiePrefix } = parseQueryParams(window.location.search)
+    if (cookiePrefix) {
+        setCookiePrefix(cookiePrefix)
+    }
+
     return (
         <div style={{ height: "100vh" }}>
             <Router>

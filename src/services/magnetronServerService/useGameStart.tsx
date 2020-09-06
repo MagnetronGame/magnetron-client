@@ -1,9 +1,10 @@
-import { Access, getAccessTokenCookie } from "./helpers"
+import { Access } from "./helpers"
 import { useEffect, useState } from "react"
 import * as api from "./gameServerApi"
+import { cookies } from "../cookies"
 
 export default (pin: string): Access => {
-    const accessToken = getAccessTokenCookie()
+    const accessToken = cookies.accessToken.get()
     const [gameExists, setGameExists] = useState<"CHECKING" | "NO" | "YES">("CHECKING")
     const [gameCreated, setGameCreated] = useState<"NOT_ATTEMPTED" | "YES" | "NO">("NOT_ATTEMPTED")
     const [gameAccess, setGameAccess] = useState<Access>(
