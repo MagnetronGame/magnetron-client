@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import useGameLobby from "../../services/magnetronServerService/useGameLobby"
-import { useHistory, useRouteMatch, Redirect } from "react-router-dom"
+import { Redirect, useRouteMatch } from "react-router-dom"
 import { Access } from "../../services/magnetronServerService/helpers"
 
 type Props = {}
@@ -40,10 +40,9 @@ const Player = styled.li`
 `
 
 const MagnetronLobbyHost: React.FC<Props> = () => {
-    const routeParams = useRouteMatch<{ pin: string }>().params
-    const pin = routeParams.pin
+    const { pin } = useRouteMatch<{ pin: string }>().params
 
-    const { lobbyAccess, connectedPlayers, gameReady } = useGameLobby(pin || "")
+    const { lobbyAccess, connectedPlayers, gameReady } = useGameLobby(pin)
 
     const message =
         lobbyAccess === Access.CHECKING

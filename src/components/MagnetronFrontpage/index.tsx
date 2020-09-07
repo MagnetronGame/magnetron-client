@@ -9,10 +9,8 @@ import {
     Wrapper,
 } from "./elements"
 import JoinGameBox from "./JoinGameBox"
-import { useLobbyNotification } from "../../services/magnetronServerService/gameServerNotifications"
 
 const MagnetronFrontpage = () => {
-    useLobbyNotification("1111", () => {})
     return (
         <Wrapper>
             <TitleArea>

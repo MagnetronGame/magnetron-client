@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { range } from "../../../utils/arrayUtils"
 import { StaticBoard } from "./board"
+import { MagnetronTheme } from "../../../magnetronGameStyle"
 
 export type VisBoardPlate = {
     object: THREE.Object3D
@@ -15,7 +16,10 @@ export default (staticBoard: StaticBoard): VisBoardPlate => {
         staticBoard.thickness,
         staticBoard.cellSize.y,
     )
-    const material = new THREE.MeshPhongMaterial({ color: "#fbffe8", shininess: 3 })
+    const material = new THREE.MeshPhongMaterial({
+        color: MagnetronTheme.board.baseColor,
+        shininess: 3,
+    })
 
     const cellsMesh = staticBoard.cellsCenterPosition.map((cellCol) =>
         cellCol.map((cellCenterPos) => {
@@ -32,7 +36,7 @@ export default (staticBoard: StaticBoard): VisBoardPlate => {
         staticBoard.edgeWidth,
     )
     const edgeMaterial = new THREE.MeshPhongMaterial({
-        color: "#6f84a6",
+        color: MagnetronTheme.board.edgeColor,
         opacity: 0,
         transparent: true,
         shininess: 15,

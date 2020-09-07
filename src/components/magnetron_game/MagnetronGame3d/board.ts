@@ -2,13 +2,8 @@ import * as THREE from "three"
 import { range } from "../../../utils/arrayUtils"
 import { MagState, Piece, Vec2I } from "../../../services/magnetronServerService/magnetronGameTypes"
 import { createVisPiece, VisPiece } from "./visPieces"
-import { ChainedAnimations } from "./animation/chainedAnimations"
-import { ParallelAnimations } from "./animation/parallelAnimations"
 import boardVisObject, { VisBoardPlate } from "./boardVisObject"
-import { Animation } from "./animation/animation"
-import { InlineAnimation } from "./animation/InlineAnimation"
-import { deepEquals } from "../../../utils/equals"
-import { Anim, ChainedAnims, SingleAnim } from "./animation/animationTypes"
+import { Anim, SingleAnim } from "./animation/animationTypes"
 import boardGroupAnim from "./boardGroupAnim"
 import { Anims } from "./animation/animationHelpers"
 import ShakeAnimation from "./ShakeAnimation"
@@ -29,9 +24,6 @@ export class Board {
         this.staticBoard = createStaticBoard(state)
         this.visBoardPlate = boardVisObject(this.staticBoard)
         this.visPiecesContainer = new THREE.Group()
-
-        this.visPiecesContainer.add()
-
         this.visBoardContainer = new THREE.Group() // this should be added to the scene
 
         this.visBoardContainer.add(this.visBoardPlate.object)

@@ -1,7 +1,7 @@
 import { IFrame, Client, StompSubscription } from "@stomp/stompjs"
 import { apiAddress } from "./gameServerApi"
 import SockJS from "sockjs-client"
-import { useEffect, useState } from "react"
+import { DependencyList, EffectCallback, useCallback, useEffect, useState } from "react"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
 
 let socket = new SockJS(`${apiAddress}/magnetron-notify`)
@@ -48,7 +48,8 @@ const useOnDisconnect = (callback: frameCallbackType) => {
 
 const useServerNotifications = (
     path: string,
-    onNotification: () => void,
+    onNotification: EffectCallback,
+    deps: DependencyList,
     notifyImmediately?: boolean,
 ) => {
     const [connected, setConnected] = useState<boolean>(stompClient.connected)
@@ -56,20 +57,26 @@ const useServerNotifications = (
     useOnConnect(() => setConnected(true))
     useOnDisconnect(() => setConnected(false))
 
-    useEffect(() => {
-        let subscription: StompSubscription | undefined
-        if (connected) {
-            subscription = stompClient.subscribe(path, () => onNotification(), {
-                Authorization: "hei",
-            })
-        }
+    const _onNotification = useCallback(onNotification, deps)
 
-        return () => {
-            if (subscription && stompClient.connected) {
-                subscription.unsubscribe()
+    useEffect(() => {
+        if (connected) {
+            let notificationCleanup: void | (() => void | undefined)
+            const subscription = stompClient.subscribe(
+                path,
+                () => (notificationCleanup = _onNotification()),
+                {},
+            )
+            return () => {
+                if (subscription && stompClient.connected) {
+                    subscription.unsubscribe()
+                }
+                if (notificationCleanup) {
+                    notificationCleanup()
+                }
             }
         }
-    }, [connected, path, onNotification])
+    }, [connected, path, _onNotification])
 
     useEffect(() => {
         if (notifyImmediately) {
@@ -80,9 +87,10 @@ const useServerNotifications = (
 
 const createServerNotificationHookWithPin = (path: string) => (
     pin: string,
-    onNotification: () => void,
+    onNotification: EffectCallback,
+    deps: DependencyList,
     notifyImmediately?: boolean,
-) => useServerNotifications(`${path}/${pin}`, onNotification, notifyImmediately)
+) => useServerNotifications(`${path}/${pin}`, onNotification, deps, notifyImmediately)
 
 export const useLobbyNotification = createServerNotificationHookWithPin("/notify/lobby")
 

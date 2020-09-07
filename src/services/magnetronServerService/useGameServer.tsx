@@ -30,7 +30,7 @@ export default (pin: string, role: "HOST" | number): UseGameServer => {
 
     useGameStateUpdate(
         pin,
-        useCallback(() => {
+        () => {
             if (accessToken) {
                 if (role === "HOST") {
                     api.gameState(accessToken, pin).then((_state) => setState(_state))
@@ -40,7 +40,8 @@ export default (pin: string, role: "HOST" | number): UseGameServer => {
                     )
                 }
             }
-        }, [accessToken, pin, role]),
+        },
+        [accessToken, pin, role],
         true,
     )
 

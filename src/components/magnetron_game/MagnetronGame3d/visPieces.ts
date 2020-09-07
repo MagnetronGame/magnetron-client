@@ -8,7 +8,7 @@ import {
 } from "../../../services/magnetronServerService/magnetronGameTypes"
 import * as THREE from "three"
 import { StaticBoard } from "./board"
-import { MagnetColor } from "../../../magnetronGameStyle"
+import { MagnetColorByType, MagnetronTheme } from "../../../magnetronGameStyle"
 
 export type VisPiece = {
     type: string
@@ -38,7 +38,7 @@ export const createVisAvatarPiece = (avatarPiece: Avatar, staticBoard: StaticBoa
     const geom = new THREE.CylinderGeometry(radius * 0.8, radius, height, 24, 1)
     geom.applyMatrix4(new THREE.Matrix4().makeTranslation(0, height / 2, 0))
     const material = new THREE.MeshPhongMaterial({
-        color: MagnetColor[avatarPiece.magnetType],
+        color: MagnetColorByType[avatarPiece.magnetType].standard,
         transparent: true,
         opacity: 0.7,
     })
@@ -60,7 +60,7 @@ export const createCoinPiece = (coinPiece: CoinPiece, staticBoard: StaticBoard):
     geom.applyMatrix4(new THREE.Matrix4().makeTranslation(0, depth / 2, 0))
 
     const material = new THREE.MeshPhongMaterial({
-        color: "#C0C0C0",
+        color: MagnetronTheme.coin.colorInner,
         // specular: "#C0C0C0",
         shininess: 25,
     })
@@ -82,14 +82,14 @@ export const createMagnetPiece = (magnetPiece: MagnetPiece, staticBoard: StaticB
     const baseGeom = new THREE.BoxGeometry(width, depth, height)
     baseGeom.applyMatrix4(new THREE.Matrix4().makeTranslation(0, depth / 2, 0))
     const baseMaterial = new THREE.MeshPhongMaterial({
-        color: "#8ca6a8",
+        color: MagnetronTheme.magnet.baseColorInner,
     })
 
     const baseMesh = new THREE.Mesh(baseGeom, baseMaterial)
     const group = new THREE.Group()
     group.add(baseMesh)
 
-    const magnetColor = MagnetColor[magnetPiece.magnetType]
+    const magnetColor = MagnetColorByType[magnetPiece.magnetType]
 
     if (
         magnetPiece.magnetType === MagnetType.POSITIVE ||
@@ -107,7 +107,8 @@ export const createMagnetPiece = (magnetPiece: MagnetPiece, staticBoard: StaticB
             new THREE.Matrix4().makeTranslation(0, depth / 2 + magnetDepth, 0),
         )
         const magnetMaterial = new THREE.MeshPhongMaterial({
-            color: magnetColor,
+            color: magnetColor.standard,
+
             transparent: true,
             opacity: 0.7,
         })

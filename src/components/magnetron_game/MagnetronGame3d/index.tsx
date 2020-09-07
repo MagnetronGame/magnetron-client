@@ -6,8 +6,8 @@ type Props = {
     className?: string
     style?: React.CSSProperties
     magState: MagState
-    possibleMagActions: MagAction[]
-    onMagAction: (action: MagAction) => void
+    possibleMagActions?: MagAction[]
+    onMagAction?: (action: MagAction) => void
 }
 
 const MagnetronGame3d: React.FC<Props> = ({

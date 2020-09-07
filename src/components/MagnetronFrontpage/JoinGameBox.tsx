@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import styled from "styled-components"
-import { MagnetColorByType } from "../../magnetronGameStyle"
+import { MagnetColorByType, MagnetronTheme } from "../../magnetronGameStyle"
 import { Link } from "react-router-dom"
 import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 
@@ -9,7 +9,7 @@ const Wrapper = styled.div`
     box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
     width: 100%;
     height: 100%;
-    background-color: ${MagnetColorByType[MagnetType.POSITIVE]};
+    background-color: ${MagnetronTheme.magnet.positiveColor.standard};
     border-radius: 20px;
     font-size: 32px;
     color: white;

@@ -30,45 +30,54 @@ export default (pin: string): UseGameLobby => {
 
     useLobbyNotification(
         pin,
-        useCallback(() => {
+        () => {
             if (accessToken) {
-                api.getLobby(accessToken, pin).then((lobby) => setConnectedPlayers(lobby.players))
+                const aborter = new AbortController()
+                api.getLobby(accessToken, pin, aborter.signal).then((lobby) =>
+                    setConnectedPlayers(lobby.players),
+                )
+                return () => aborter.abort()
             }
-        }, [accessToken, pin]),
+        },
+        [accessToken, pin],
         true,
     )
 
     useLobbyGameReady(
         pin,
-        useCallback(() => {
+        () => {
             setGameReady(true)
-        }, []),
+        },
+        [],
     )
 
     useGameStarted(
         pin,
-        useCallback(() => {
+        () => {
             setGameStarted(true)
-        }, []),
+        },
+        [],
     )
 
     // Check if game started before we subscribed to notifications
     useEffect(() => {
         let timeoutHandle: number | undefined
+        const fetchAborter = new AbortController()
         if (accessToken) {
             timeoutHandle = setTimeout(
                 () =>
                     api
-                        .gameExists(accessToken, pin)
+                        .gameExists(accessToken, pin, fetchAborter.signal)
                         .then((exists) => setGameStarted(exists))
                         .catch(() => setGameStarted(false)),
                 1000,
             )
         }
         return () => {
-            if (timeoutHandle) {
+            if (timeoutHandle !== undefined) {
                 clearTimeout(timeoutHandle)
             }
+            fetchAborter.abort()
         }
     }, [accessToken, pin])
 

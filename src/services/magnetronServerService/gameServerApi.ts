@@ -29,10 +29,11 @@ export const createLobby = (): Promise<CreateGameResponse> =>
         .then((res) => res.json())
         .then((pin) => pin as CreateGameResponse)
 
-export const getLobby = (accessToken: string, pin: string): Promise<Lobby> =>
+export const getLobby = (accessToken: string, pin: string, signal?: AbortSignal): Promise<Lobby> =>
     fetch(`${apiUrl}/lobby/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
+        signal,
     })
         .then((res) => (res.ok ? res : Promise.reject(res)))
         .then((res) => res.json())
@@ -65,10 +66,15 @@ export const lobbyExists = (accessToken: string, pin: string): Promise<boolean> 
         .then((res) => res.json())
         .then((exists) => exists as boolean)
 
-export const gameExists = (accessToken: string, pin: string): Promise<boolean> =>
+export const gameExists = (
+    accessToken: string,
+    pin: string,
+    signal?: AbortSignal,
+): Promise<boolean> =>
     fetch(`${apiUrl}/gameExists/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
+        signal: signal,
     })
         .then((res) => (res.ok ? res : Promise.reject(res)))
         .then((res) => res.json())

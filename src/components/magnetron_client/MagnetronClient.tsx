@@ -31,6 +31,7 @@ const MagnetronClient: React.FC<Props> = () => {
 
     const gameElem = state && (
         <MagnetronGame2d
+            playerIndex={playerIndex}
             magState={state}
             possibleMagActions={possibleActions}
             onMagAction={(action) => performAction(action)}
