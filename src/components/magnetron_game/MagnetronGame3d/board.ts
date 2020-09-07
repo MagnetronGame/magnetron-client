@@ -45,31 +45,34 @@ export class Board {
     }
 
     public getCreationAnimation(): Anim {
-        const boardCreationAnimation: Anim = [
-            { duration: 0, end: () => (this.visPiecesContainer.visible = false) },
+        const boardCreationAnimation: Anim = Anims.chained([
+            // { duration: 0, end: () => (this.visPiecesContainer.visible = false) },
             boardGroupAnim(this.staticBoard, this.visBoardPlate),
-            Anims.parallel([
-                new ShakeAnimation(this.visBoardPlate.object, 1, 0.1),
-                opacityAnim(this.visBoardPlate.edgesRow[0], 0, 1, 0.5),
-                new ParticleSystemAnim(
-                    this.visBoardContainer.parent || this.visBoardContainer,
-                    1,
-                    new THREE.Vector3(),
-                    "#7ab8ff",
-                    0.05,
-                    0.1,
-                ),
-                new ParticleSystemAnim(
-                    this.visBoardContainer.parent || this.visBoardContainer,
-                    1.3,
-                    new THREE.Vector3(),
-                    "#ffffcc",
-                    0.01,
-                    -0.004,
-                ),
-            ]),
-            { duration: 0, end: () => (this.visPiecesContainer.visible = true) },
-        ]
+            Anims.parallel(
+                [
+                    new ShakeAnimation(this.visBoardPlate.object, 1, 0.1),
+                    opacityAnim(this.visBoardPlate.edgesRow[0], 0.5, 0, 1),
+                    new ParticleSystemAnim(
+                        this.visBoardContainer.parent || this.visBoardContainer,
+                        1,
+                        new THREE.Vector3(),
+                        "#7ab8ff",
+                        0.05,
+                        0.1,
+                    ),
+                    new ParticleSystemAnim(
+                        this.visBoardContainer.parent || this.visBoardContainer,
+                        1.3,
+                        new THREE.Vector3(),
+                        "#ffffcc",
+                        0.01,
+                        -0.004,
+                    ),
+                ],
+                "board implode",
+            ),
+            // { name: "set pieces ", duration: 0, end: () => (this.visPiecesContainer.visible = true) },
+        ])
         return boardCreationAnimation
     }
 
@@ -92,12 +95,12 @@ export class Board {
         )
         visPieces.forEach((visPiece) => this.detachVisPiece(visPiece, boardPos))
 
-        const anims: ChainedAnims = visPieces.map((visPiece) => ({
+        const anims: Anim[] = visPieces.map((visPiece) => ({
             name: `Remove piece at ${vec2i.toString(boardPos)}: ${visPiece.pieceData.type}`,
             duration: instant ? 0 : 0.1,
             start: () => this.removeVisPieceGraphics(visPiece),
         }))
-        return anims
+        return Anims.chained(anims)
     }
 
     public movePiece(piece: Piece, fromBoardPos: Vec2I, toBoardPos: Vec2I): Anim {

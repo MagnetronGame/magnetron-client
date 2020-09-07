@@ -10,12 +10,12 @@ import {
 } from "../../../services/magnetronServerService/magnetronGameTypes"
 import { InlineAnimation } from "./animation/InlineAnimation"
 import { ChainedAnimations } from "./animation/chainedAnimations"
-import { AnimationQueue } from "./animation/AnimationQueue"
-import { ChainedAnims } from "./animation/animationTypes"
+import { Anim, ChainedAnims } from "./animation/animationTypes"
 import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
-import { Anims } from "./animation/animationHelpers"
+import { Anims, Duration } from "./animation/animationHelpers"
 import cameraMovementAnim from "./cameraMovementAnim"
 import * as vec2i from "../../../utils/vec2IUtils"
+import AnimationManager from "./animation/AnimationManager"
 
 export class Magnetron {
     started = false
@@ -30,7 +30,7 @@ export class Magnetron {
     board: Board | null = null
 
     private entities: Entity[] = []
-    private animQueue: AnimationQueue
+    private animManager: AnimationManager
 
     private prevTimeMillis = 0
 
@@ -61,8 +61,9 @@ export class Magnetron {
         this.scene = scene
         this.renderer = renderer
 
-        this.animQueue = new AnimationQueue()
-        this.addEntity(this.animQueue)
+        this.animManager = new AnimationManager()
+        this.animManager.logging = true
+        this.addEntity(this.animManager.entity)
     }
 
     public addEntity(entity: Entity) {
@@ -81,14 +82,14 @@ export class Magnetron {
         light.position.set(-1, 2, 1)
         this.scene.add(light)
 
-        // this.animQueue.add(
-        //     new InlineAnimation({
-        //         looping: true,
-        //         update: ({ currDuration }) => {
-        //             light.position.set(Math.cos(currDuration) * 3, 10, Math.sin(currDuration) * 3)
-        //         },
-        //     }),
-        // )
+        this.animManager.add({
+            name: "top light movement",
+            context: "main-parallel",
+            duration: Duration.INF,
+            update: ({ currDuration }) => {
+                light.position.set(Math.cos(currDuration) * 3, 10, Math.sin(currDuration) * 3)
+            },
+        })
 
         const frontLightColor = 0xffffff
         const frontLightIntensity = 0.3
@@ -99,13 +100,18 @@ export class Magnetron {
         this.board = new Board(state, this.pieceEquals)
         this.scene.add(this.board.visBoardContainer)
 
-        this.animQueue.add([
-            Anims.parallel([
-                this.board.getCreationAnimation(),
-                cameraZoomRotateAnim(this.camera, 2, 0.6, -Math.PI / 2, 1, 5),
+        this.animManager.add(
+            Anims.chained([
+                Anims.parallel(
+                    [
+                        this.board.getCreationAnimation(),
+                        cameraZoomRotateAnim(this.camera, 2, 0.6, -Math.PI / 2, 1, 5),
+                    ],
+                    "Create board and initial camera motion",
+                ),
+                cameraMovementAnim(this.camera),
             ]),
-            cameraMovementAnim(this.camera),
-        ])
+        )
 
         this.updateState(state)
     }
@@ -132,20 +138,28 @@ export class Magnetron {
         }
     }
 
-    private setState(state: MagState) {
-        const piecesChangeAnims = state.board.flatMap((boardRow, y) =>
-            boardRow
-                .map<[Piece, Vec2I]>((piece, x) => [piece, { x, y }])
-                .filter(([piece, boardPos]) => !this.board!.hasOnlyPiece(boardPos, piece))
-                .map(
-                    ([piece, boardPos]) =>
-                        [
-                            this.board!.removePieces(boardPos, "Avatar", true),
-                            piece.type !== "EmptyPiece"
-                                ? this.board!.addPiece(piece, boardPos, true)
-                                : null,
-                        ].filter((anim) => !!anim) as ChainedAnims,
-                ),
+    private setState(state: MagState): ChainedAnims {
+        const piecesChangeAnims: ChainedAnims = Anims.chained(
+            state.board.flatMap((boardRow, y) =>
+                boardRow
+                    .map<[Piece, Vec2I]>((piece, x) => [piece, { x, y }])
+                    .filter(([piece, boardPos]) => !this.board!.hasOnlyPiece(boardPos, piece))
+                    .map(([piece, boardPos]) =>
+                        Anims.chained(
+                            [
+                                this.board!.getPieces(boardPos).length !== 0
+                                    ? this.board!.removePieces(boardPos, "Avatar", true)
+                                    : null,
+                                piece.type !== "EmptyPiece"
+                                    ? this.board!.addPiece(piece, boardPos, true)
+                                    : null,
+                            ].filter((anim) => anim !== null) as Anim[],
+                            "Change single piece",
+                        ),
+                    )
+                    .filter((anim) => anim.anims.length !== 0),
+            ),
+            "Change pieces",
         )
 
         const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType("Avatar") as [
@@ -177,40 +191,44 @@ export class Magnetron {
             } else throw Error(`Could not find avatar: ${existingAvatar.index}`)
         })
 
-        const createAvatarsAnimations: ChainedAnims = nonExistingAvatarPiecesWithPos.map(
-            ([avatar, boardPos]) => this.board!.addPiece(avatar, boardPos),
+        const createAvatarsAnimations: ChainedAnims = Anims.chained(
+            nonExistingAvatarPiecesWithPos.map(([avatar, boardPos]) =>
+                this.board!.addPiece(avatar, boardPos),
+            ),
+            "Create avatars",
         )
 
-        const moveAvatarsAnims: ChainedAnims = existingAvatarPiecesWithNewOldPos
-            .filter(([, newBoardPos, oldBoardPos]) => !vec2i.equals(newBoardPos, oldBoardPos))
-            .map(([avatar, newBoardPos, oldBoardPos]) => [
-                { duration: 0.5 },
-                this.board!.movePiece(avatar, oldBoardPos, newBoardPos),
-                { duration: 0.5 },
-            ])
+        const moveAvatarsAnims: ChainedAnims = Anims.chained(
+            existingAvatarPiecesWithNewOldPos
+                .filter(([, newBoardPos, oldBoardPos]) => !vec2i.equals(newBoardPos, oldBoardPos))
+                .map(([avatar, newBoardPos, oldBoardPos]) =>
+                    Anims.chained([
+                        { duration: 0.5 },
+                        this.board!.movePiece(avatar, oldBoardPos, newBoardPos),
+                        { duration: 0.5 },
+                    ]),
+                ),
+            "Move avatars",
+        )
 
-        const stateUpdateAnims = [
-            ...createAvatarsAnimations,
-            ...moveAvatarsAnims,
-            ...piecesChangeAnims,
-        ]
-        this.animQueue.add(stateUpdateAnims)
+        const stateUpdateAnims = Anims.chained(
+            [createAvatarsAnimations, moveAvatarsAnims, piecesChangeAnims].filter(
+                (anim) => anim.anims.length !== 0,
+            ),
+            "State update anims",
+        )
+        return stateUpdateAnims
     }
 
     public updateState(state: MagState) {
         if (state.didSimulate) {
-            const moveAnims = state.simulationStates.map(
-                (simState) =>
-                    new InlineAnimation({
-                        duration: 1,
-                        start: () => this.setState(simState),
-                    }),
+            const simAnims = Anims.chained(
+                state.simulationStates.map((simState) => this.setState(simState)),
+                "simulation",
             )
-            const simAnim = new ChainedAnimations(moveAnims)
-            this.addEntity(simAnim)
-        } else {
-            this.setState(state)
+            this.animManager.add(Anims.chained([{ duration: 3 }, simAnims, { duration: 3 }], ""))
         }
+        this.animManager.add(this.setState(state))
     }
 
     private start(state: MagState) {

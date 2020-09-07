@@ -32,6 +32,7 @@ const positionCells = (
 }
 
 export default (staticBoard: StaticBoard, boardObject: VisBoardPlate): Anim => ({
+    name: "group board pieces",
     duration: 4,
     update: ({ durationRatio, durationRatioInv }) => {
         const durationRatioSquared = Math.pow(durationRatio, 20)

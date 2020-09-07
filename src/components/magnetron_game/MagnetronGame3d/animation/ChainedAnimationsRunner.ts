@@ -1,29 +1,31 @@
-import { SingleAnimationRunner } from "./SingleAnimationRunner"
-import { AnimRunner, Anim, ChainedAnims } from "./animationTypes"
-import { createAnimationRunner } from "./animationHelpers"
+import { AnimRunner, MutableAnimRunner } from "./AnimRunner"
 
-export class ChainedAnimationsRunner extends AnimRunner {
+export class ChainedAnimationsRunner extends MutableAnimRunner {
     private readonly animRunners: AnimRunner[] = []
     private started: boolean = false
 
-    constructor(parent: AnimRunner | null, anims: ChainedAnims) {
-        super(parent)
-        this.animRunners = anims.map((anim) => this.createAnimRunner(anim))
+    constructor(animRunners: AnimRunner[], name?: string, parent?: AnimRunner) {
+        super(parent, name)
+        animRunners.forEach((ar) => (ar.parent = this))
+        this.animRunners = animRunners
     }
 
-    public addAnim(anim: Anim) {
-        this.animRunners.push(this.createAnimRunner(anim))
+    public add(animRunner: AnimRunner) {
+        animRunner.parent = this
+        this.animRunners.push(animRunner)
         if (this.animRunners.length === 1 && this.started) {
             this.animRunners[0].start()
         }
     }
 
     public start = () => {
+        super.start()
         this.animRunners[0]?.start()
         this.started = true
     }
 
     public update = (deltaTime: number) => {
+        super.update(deltaTime)
         while (true) {
             if (this.animRunners.length > 0) {
                 const currAnimRunner = this.animRunners[0]
@@ -44,6 +46,7 @@ export class ChainedAnimationsRunner extends AnimRunner {
     }
 
     public end = () => {
+        super.end()
         this.animRunners.forEach((anims) => anims.end())
     }
 }

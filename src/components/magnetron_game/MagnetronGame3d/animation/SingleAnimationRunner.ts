@@ -1,13 +1,13 @@
-import { Anim, AnimRunner, SingleAnim } from "./animationTypes"
+import { SingleAnim } from "./animationTypes"
+import { AnimRunner } from "./AnimRunner"
 
 export class SingleAnimationRunner extends AnimRunner {
     private anim: SingleAnim
     private duration: number
     private currDuration: number
-    isFinished: boolean = false
 
-    constructor(parent: AnimRunner | null, anim: SingleAnim) {
-        super(parent)
+    constructor(anim: SingleAnim, parent?: AnimRunner) {
+        super(parent, anim.name)
         this.anim = anim
         const duration = anim.duration || -1
         this.duration = duration
@@ -15,7 +15,7 @@ export class SingleAnimationRunner extends AnimRunner {
     }
 
     public start = () => {
-        console.log(`Starting anim: ${this.anim.name || "anonymous"}`)
+        super.start()
         this.anim.start &&
             this.anim.start({
                 duration: this.duration,
@@ -26,6 +26,7 @@ export class SingleAnimationRunner extends AnimRunner {
     }
 
     public update = (deltaTime: number) => {
+        super.update(deltaTime)
         this.currDuration += deltaTime
 
         const durationRatio = this.currDuration / this.duration
@@ -46,6 +47,7 @@ export class SingleAnimationRunner extends AnimRunner {
     }
 
     public end = () => {
+        super.end()
         this.anim.end &&
             this.anim.end({
                 duration: this.duration,

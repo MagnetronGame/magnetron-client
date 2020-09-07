@@ -1,48 +1,30 @@
-import { SingleAnimationRunner } from "./SingleAnimationRunner"
-import { ChainedAnimationsRunner } from "./ChainedAnimationsRunner"
-import {
-    Anim,
-    AnimRunner,
-    ChainedAnims,
-    LoopingAnim,
-    ParallelAnims,
-    SingleAnim,
-} from "./animationTypes"
-import { ParallelAnimationsRunner } from "./ParallelAnimationsRunner"
+import { Anim, ChainedAnims, ParallelAnims, SingleAnim } from "./animationTypes"
 
 export const Anims = {
-    parallel: (anims: Anim[]): ParallelAnims => ({
+    parallel: (anims: Anim[], name?: string, context?: string): ParallelAnims => ({
         parallel: true,
+        name,
+        context,
         anims,
     }),
-    chained: (anims: Anim[]): ChainedAnims => anims,
-    looping: (anim: Anim): Anim => ({ looping: true, anim: anim }),
+    chained: (anims: Anim[], name?: string, context?: string): ChainedAnims => ({
+        chained: true,
+        name,
+        context,
+        anims,
+    }),
 }
 
-const animIsSingleAnim = (anim: Anim): anim is SingleAnim =>
+export const Duration = {
+    INF: Number.MAX_VALUE,
+    NONE: 0,
+}
+
+export const animIsSingleAnim = (anim: Anim): anim is SingleAnim =>
     (anim as SingleAnim).duration !== undefined
 
-const animIsParallelAnims = (anim: Anim): anim is ParallelAnims =>
-    (anim as ParallelAnims).parallel !== undefined
+export const animIsParallelAnims = (anim: Anim): anim is ParallelAnims =>
+    (anim as ParallelAnims).parallel
 
-const animIsChainedAnims = (anim: Anim): anim is ChainedAnims => Array.isArray(anim)
-
-const animIsLoopingAnim = (anim: Anim): anim is LoopingAnim => (anim as LoopingAnim).looping
-
-export const createAnimationRunner = (
-    parent: AnimRunner | null,
-    anim: Anim,
-): { animRunner: AnimRunner; looping: boolean } => {
-    if (animIsSingleAnim(anim)) {
-        return { animRunner: new SingleAnimationRunner(parent, anim), looping: false }
-    } else if (animIsParallelAnims(anim)) {
-        return { animRunner: new ParallelAnimationsRunner(parent, anim), looping: false }
-    } else if (animIsChainedAnims(anim)) {
-        return { animRunner: new ChainedAnimationsRunner(parent, anim), looping: false }
-    } else if (animIsLoopingAnim(anim)) {
-        return {
-            animRunner: createAnimationRunner(parent, anim.anim).animRunner,
-            looping: true,
-        }
-    } else throw new Error("invalid anim type")
-}
+export const animIsChainedAnims = (anim: Anim): anim is ChainedAnims =>
+    (anim as ChainedAnims).chained

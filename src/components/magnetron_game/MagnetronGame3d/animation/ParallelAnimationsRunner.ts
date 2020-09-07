@@ -1,21 +1,32 @@
-import { AnimRunner, ParallelAnims } from "./animationTypes"
-import { createAnimationRunner } from "./animationHelpers"
+import { AnimRunner, MutableAnimRunner } from "./AnimRunner"
 
-export class ParallelAnimationsRunner extends AnimRunner {
-    private parallelAnimsRunner: AnimRunner[]
-    isFinished: boolean = false
+export class ParallelAnimationsRunner extends MutableAnimRunner {
+    private animRunners: AnimRunner[]
+    started: boolean = false
 
-    constructor(parent: AnimRunner | null, anims: ParallelAnims) {
-        super(parent)
-        this.parallelAnimsRunner = anims.anims.map((anim) => this.createAnimRunner(anim))
+    constructor(animRunners: AnimRunner[], name?: string, parent?: AnimRunner) {
+        super(parent, name)
+        animRunners.forEach((ar) => (ar.parent = this))
+        this.animRunners = animRunners
+    }
+
+    public add(animRunner: AnimRunner) {
+        animRunner.parent = this
+        this.animRunners.push(animRunner)
+        if (this.started) {
+            animRunner.start()
+        }
     }
 
     public start = () => {
-        this.parallelAnimsRunner.forEach((animRunner) => animRunner.start())
+        super.start()
+        this.animRunners.forEach((animRunner) => animRunner.start())
+        this.started = true
     }
 
     public update = (deltaTime: number) => {
-        const unfinishedAnimRunners = this.parallelAnimsRunner.filter(
+        super.update(deltaTime)
+        const unfinishedAnimRunners = this.animRunners.filter(
             (animRunner) => !animRunner.isFinished,
         )
         if (unfinishedAnimRunners.length === 0) {
@@ -31,7 +42,8 @@ export class ParallelAnimationsRunner extends AnimRunner {
     }
 
     public end = () => {
-        this.parallelAnimsRunner
+        super.end()
+        this.animRunners
             .filter((animRunner) => !animRunner.isFinished)
             .forEach((animRunner) => animRunner.end())
     }

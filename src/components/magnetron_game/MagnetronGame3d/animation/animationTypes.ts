@@ -1,5 +1,3 @@
-import { createAnimationRunner } from "./animationHelpers"
-
 export type AnimStdProps = {
     currDuration: number
     duration: number
@@ -11,57 +9,37 @@ export type AnimUpdateProps = AnimStdProps & {
     deltaTime: number
 }
 
-export type SingleAnim = {
+export type AnimCommon = {
     name?: string
-    duration?: number
+    context?: string // default "main-queue". Use "main-parallel" to run animation without halting the queue
+}
+
+export type SingleAnim = AnimCommon & {
+    duration: number
     start?: (props: AnimStdProps) => void
     update?: (props: AnimUpdateProps) => void
     end?: (props: AnimStdProps) => void
 }
 
-export type ParallelAnims = {
+export type ParallelAnims = AnimCommon & {
     parallel: boolean
     anims: Anim[]
 }
 
-export type ChainedAnims = Anim[]
+export type ChainedAnims = AnimCommon & { chained: true; anims: Anim[] }
 
-export type LoopingAnim = {
-    looping: boolean
-    anim: Anim
-}
+export type Anim = SingleAnim | ChainedAnims | ParallelAnims
 
-export type Anim = SingleAnim | ChainedAnims | ParallelAnims | LoopingAnim
+// export type AnimRunner = {
+//     animName?: string
+//     isFinished: boolean
+//     parent: AnimRunner | null
+//
+//     start: () => void
+//     update: (deltaTime: number) => void
+//     end: () => void
+// }
 
-export abstract class AnimRunner {
-    public isFinished: boolean = false
-    public isLooping: boolean = false
-    public parent: AnimRunner | null
-
-    constructor(parent: AnimRunner | null) {
-        this.parent = parent
-    }
-
-    abstract start: () => void
-    abstract update: (deltaTime: number) => void
-    abstract end: () => void
-
-    protected createAnimRunner(anim: Anim): AnimRunner {
-        const { animRunner, looping } = createAnimationRunner(this, anim)
-        if (looping) {
-            const loopingAnim: Anim = {
-                duration: 0,
-                start: () => this.postLooping(loopingAnim),
-            }
-            return createAnimationRunner(this, loopingAnim).animRunner
-        } else {
-            return animRunner
-        }
-    }
-
-    protected postLooping(anim: Anim) {
-        if (this.parent) {
-            this.parent.postLooping(anim)
-        }
-    }
-}
+// export type MutableAnimRunner = AnimRunner & {
+//     add: (animRunner: AnimRunner) => void
+// }

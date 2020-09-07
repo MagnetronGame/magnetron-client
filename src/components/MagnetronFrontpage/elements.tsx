@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import MagnetronTitleLogo from "../MagnetronTitleLogo"
 import React, { PropsWithChildren } from "react"
-import { MagnetColor } from "../../magnetronGameStyle"
+import { MagnetColorByType } from "../../magnetronGameStyle"
 import { Link } from "react-router-dom"
 import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 
@@ -69,7 +69,7 @@ export const HostGameButton = styled(Link)`
     max-height: 100%;
     box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
     border-radius: 20px;
-    background-color: ${MagnetColor[MagnetType.NEGATIVE]};
+    background-color: ${MagnetColorByType[MagnetType.NEGATIVE]};
     padding: 20px 10%;
     border: none;
     outline: none;
@@ -79,6 +79,6 @@ export const HostGameButton = styled(Link)`
     cursor: pointer;
 
     &:hover {
-        background-color: ${MagnetColor[MagnetType.NEGATIVE]}b0;
+        background-color: ${MagnetColorByType[MagnetType.NEGATIVE]}b0;
     }
 `
