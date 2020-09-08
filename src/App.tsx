@@ -9,7 +9,7 @@ import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCrea
 import MagnetronGameStart from "./components/magnetron_host/MagnetronGameStart"
 import MagnetronLobbyJoin from "./components/magnetron_client/MagnetronLobbyJoin"
 import MagnetronTestAll from "./components/magnetron_test/MagnetronTestAll"
-import { parseQueryParams } from "./utils/queryParser"
+import { parseQueryParams, stringifyQueryParams } from "./utils/queryParser"
 import { setCookiePrefix } from "./services/cookies"
 
 function App() {

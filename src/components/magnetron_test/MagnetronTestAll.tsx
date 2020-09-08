@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react"
 import MagnetronMultiPage from "./MagnetronMultiPage"
 import { range } from "../../utils/arrayUtils"
 import styled from "styled-components"
+import { parseQueryParams, stringifyQueryParams } from "../../utils/queryParser"
+import { MagAction, MagState } from "../../services/magnetronServerService/magnetronGameTypes"
+import { useLocation } from "react-router-dom"
 
 const FrameWrapper = styled.div`
     width: 100%;
@@ -44,22 +47,84 @@ const GameFrame: React.FC<{ title: string; src: string }> = ({ title, src }) => 
     )
 }
 
+const createUrl = (
+    hostClient: "host" | number,
+    subPath?: string,
+    queryParams?: { [k: string]: any },
+) =>
+    `${window.location.origin}${subPath || ""}` +
+    stringifyQueryParams(
+        { cookiePrefix: hostClient === "host" ? "test-host" : `test-client${hostClient}` },
+        queryParams ? queryParams : {},
+    )
+
+const clientsInitialActionBuffer: MagAction[][] = [
+    [
+        { handPieceIndex: 0, boardPosition: { x: 0, y: 1 } },
+        { handPieceIndex: 0, boardPosition: { x: 1, y: 1 } },
+        { handPieceIndex: 0, boardPosition: { x: 1, y: 0 } },
+    ],
+    [
+        { handPieceIndex: 0, boardPosition: { x: 1, y: 4 } },
+        { handPieceIndex: 0, boardPosition: { x: 1, y: 3 } },
+        { handPieceIndex: 0, boardPosition: { x: 0, y: 3 } },
+    ],
+    [
+        { handPieceIndex: 0, boardPosition: { x: 3, y: 0 } },
+        { handPieceIndex: 0, boardPosition: { x: 3, y: 1 } },
+        { handPieceIndex: 0, boardPosition: { x: 4, y: 1 } },
+    ],
+    [
+        { handPieceIndex: 0, boardPosition: { x: 4, y: 3 } },
+        { handPieceIndex: 0, boardPosition: { x: 3, y: 3 } },
+        { handPieceIndex: 0, boardPosition: { x: 3, y: 4 } },
+    ],
+]
+
+const clientCount = 4
+const clientsRange = range(4)
+
 const MagnetronTestAll = () => {
-    const [hostUrl, setHostUrl] = useState<string>(
-        `${window.location.origin}?cookiePrefix=test-host`,
-    )
+    const { actions: inputPredefinedActions } = parseQueryParams(useLocation().search)
+    const [hostUrl, setHostUrl] = useState<string>(createUrl("host"))
     const [clientsUrl, setClientsUrl] = useState<string[]>(
-        range(4).map((index) => `${window.location.origin}?cookiePrefix=test-client${index}`),
+        clientsRange.map((index) => createUrl(index)),
     )
+
     const [inputPin, setInputPin] = useState<string>("")
 
+    const [clientsActionBuffer, setClientsActionBuffer] = useState<MagAction[][]>(
+        inputPredefinedActions ? clientsInitialActionBuffer : clientsRange.map(() => []),
+    )
+
+    const setClientIndexUrl = (index: number, url: string) =>
+        setClientsUrl((prevUrls) => [
+            ...prevUrls.slice(0, index),
+            url,
+            ...prevUrls.slice(index + 1),
+        ])
+
+    const gotoGameWithActionsBuffer = () => {
+        clientsRange.forEach((index) => {
+            if (clientsActionBuffer[index].length > 0) {
+                const gameUrl = createUrl(index, `/client/game/${inputPin}/${index}`, {
+                    actionsBuffer: JSON.stringify(clientsActionBuffer[index]),
+                })
+                setClientIndexUrl(index, gameUrl)
+            }
+        })
+    }
+
     const handleClientsJoin = () => {
-        setClientsUrl((curl) =>
-            curl.map(
-                (_, index) =>
-                    `client/lobby/join/${inputPin}?autoJoinName=frank${index}&cookiePrefix=test-client${index}`,
-            ),
-        )
+        clientsRange.map((index) => {
+            const joinUrl = createUrl(index, `/client/lobby/join/${inputPin}`, {
+                autoJoinName: `frank${index}`,
+            })
+            // delayed to make the playerIndex consistent with the client index
+            setTimeout(() => setClientIndexUrl(index, joinUrl), 500 * index)
+        })
+
+        setTimeout(() => gotoGameWithActionsBuffer(), 5000)
     }
 
     return (

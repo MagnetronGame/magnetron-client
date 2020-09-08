@@ -9,6 +9,8 @@ import {
     Wrapper,
 } from "./elements"
 import JoinGameBox from "./JoinGameBox"
+import MagnetronCircleSpinning from "../MagnetronCircleSpinning"
+import MagnetronCircle from "../MagnetronCircle"
 
 const MagnetronFrontpage = () => {
     return (

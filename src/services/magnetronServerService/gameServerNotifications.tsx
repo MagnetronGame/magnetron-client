@@ -1,10 +1,11 @@
 import { IFrame, Client, StompSubscription } from "@stomp/stompjs"
-import { apiAddress } from "./gameServerApi"
+import * as api from "./gameServerApi"
 import SockJS from "sockjs-client"
 import { DependencyList, EffectCallback, useCallback, useEffect, useState } from "react"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
+import { MagState, MagStatePlayerView } from "./magnetronGameTypes"
 
-let socket = new SockJS(`${apiAddress}/magnetron-notify`)
+let socket = new SockJS(`${api.apiAddress}/magnetron-notify`)
 let stompClient = new Client({
     webSocketFactory: () => socket,
 })
@@ -49,8 +50,8 @@ const useOnDisconnect = (callback: frameCallbackType) => {
 const useServerNotifications = (
     path: string,
     onNotification: EffectCallback,
+    onSubscribed: () => void,
     deps: DependencyList,
-    notifyImmediately?: boolean,
 ) => {
     const [connected, setConnected] = useState<boolean>(stompClient.connected)
 
@@ -58,13 +59,21 @@ const useServerNotifications = (
     useOnDisconnect(() => setConnected(false))
 
     const _onNotification = useCallback(onNotification, deps)
+    const _onSubscribed = useCallback(onSubscribed, deps)
 
     useEffect(() => {
         if (connected) {
             let notificationCleanup: void | (() => void | undefined)
             const subscription = stompClient.subscribe(
                 path,
-                () => (notificationCleanup = _onNotification()),
+                (message) => {
+                    const { body } = message
+                    if (body === "subscribed") {
+                        _onSubscribed()
+                    } else {
+                        notificationCleanup = _onNotification()
+                    }
+                },
                 {},
             )
             return () => {
@@ -76,21 +85,15 @@ const useServerNotifications = (
                 }
             }
         }
-    }, [connected, path, _onNotification])
-
-    useEffect(() => {
-        if (notifyImmediately) {
-            onNotification()
-        }
-    }, [])
+    }, [connected, path, _onNotification, _onSubscribed])
 }
 
 const createServerNotificationHookWithPin = (path: string) => (
     pin: string,
     onNotification: EffectCallback,
+    onSubscribed: () => void,
     deps: DependencyList,
-    notifyImmediately?: boolean,
-) => useServerNotifications(`${path}/${pin}`, onNotification, deps, notifyImmediately)
+) => useServerNotifications(`${path}/${pin}`, onNotification, onSubscribed, deps)
 
 export const useLobbyNotification = createServerNotificationHookWithPin("/notify/lobby")
 
@@ -98,4 +101,41 @@ export const useLobbyGameReady = createServerNotificationHookWithPin("/notify/lo
 
 export const useGameStarted = createServerNotificationHookWithPin("/notify/game/started")
 
-export const useGameStateUpdate = createServerNotificationHookWithPin("/notify/game/state")
+export const useGameStateUpdate = (
+    accessToken: string,
+    pin: string,
+    clientType: "HOST" | number,
+    onGameState: (state: MagState | MagStatePlayerView) => void,
+    deps: DependencyList,
+) => {
+    const fetchGameState = useCallback(() => {
+        clientType === "HOST"
+            ? api.gameState(accessToken, pin).then((state) => onGameState(state))
+            : api
+                  .gameStatePlayerView(accessToken, pin, clientType)
+                  .then((state) => onGameState(state))
+    }, [accessToken, pin, onGameState, clientType])
+    useServerNotifications(
+        `/notify/game/state/${pin}`,
+        () => fetchGameState(),
+        () => fetchGameState(),
+        deps,
+    )
+}
+
+// useGameStateUpdate(
+//     pin,
+//     () => {
+//         if (accessToken) {
+//             if (role === "HOST") {
+//                 api.gameState(accessToken, pin).then((_state) => setState(_state))
+//             } else {
+//                 api.gameStatePlayerView(accessToken, pin, role).then((_stateView) =>
+//                     setState(_stateView.state),
+//                 )
+//             }
+//         }
+//     },
+//     [accessToken, pin, role],
+//     true,
+// )

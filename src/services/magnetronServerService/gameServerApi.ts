@@ -87,6 +87,7 @@ export const gameState = (accessToken: string, pin: string): Promise<MagState> =
     })
         .then((res) => (res.ok ? res : Promise.reject(res)))
         .then((res) => res.json())
+        .then((res) => res || Promise.reject("Got no state: " + res))
         .then((gameState) => gameState as MagState)
 
 export const gameStatePlayerView = (
@@ -100,6 +101,7 @@ export const gameStatePlayerView = (
     })
         .then((res) => (res.ok ? res : Promise.reject(res)))
         .then((res) => res.json())
+        .then((res) => res || Promise.reject("Got no state: " + res))
         .then((gameState) => gameState as MagStatePlayerView)
 
 export const possibleActions = (accessToken: string, pin: string): Promise<MagAction[]> =>

@@ -33,12 +33,12 @@ export const MagnetronTheme: MagnetronThemeType = {
         positiveColor: {
             standard: "#ff3c2d",
             lighter: shade(0.2, "#ff3c2d"),
-            darker: shade(-0.2, "#ff3c2d"),
+            darker: shade(-0.4, "#ff3c2d"),
         },
         negativeColor: {
             standard: "#433aff",
             lighter: shade(0.2, "#433aff"),
-            darker: shade(-0.2, "#433aff"),
+            darker: shade(-0.4, "#433aff"),
         },
         fakeColor: {
             standard: "#3b3b3b",

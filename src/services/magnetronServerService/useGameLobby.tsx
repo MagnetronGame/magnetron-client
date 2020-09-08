@@ -28,26 +28,24 @@ export default (pin: string): UseGameLobby => {
         }
     }, [pin, accessToken])
 
-    useLobbyNotification(
-        pin,
-        () => {
-            if (accessToken) {
-                const aborter = new AbortController()
-                api.getLobby(accessToken, pin, aborter.signal).then((lobby) =>
-                    setConnectedPlayers(lobby.players),
-                )
-                return () => aborter.abort()
-            }
-        },
-        [accessToken, pin],
-        true,
-    )
+    const onLobbyNotify = () => {
+        if (accessToken) {
+            const aborter = new AbortController()
+            api.getLobby(accessToken, pin, aborter.signal).then((lobby) =>
+                setConnectedPlayers(lobby.players),
+            )
+            return () => aborter.abort()
+        }
+    }
+
+    useLobbyNotification(pin, onLobbyNotify, onLobbyNotify, [accessToken, pin])
 
     useLobbyGameReady(
         pin,
         () => {
             setGameReady(true)
         },
+        () => {},
         [],
     )
 
@@ -56,6 +54,7 @@ export default (pin: string): UseGameLobby => {
         () => {
             setGameStarted(true)
         },
+        () => {},
         [],
     )
 

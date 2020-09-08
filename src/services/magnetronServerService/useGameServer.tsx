@@ -1,4 +1,4 @@
-import { MagAction, MagState } from "./magnetronGameTypes"
+import { MagAction, MagState, MagStatePlayerView } from "./magnetronGameTypes"
 import { useCallback, useEffect, useState } from "react"
 import * as api from "./gameServerApi"
 import { Access } from "./helpers"
@@ -29,20 +29,17 @@ export default (pin: string, role: "HOST" | number): UseGameServer => {
     }, [pin, accessToken, gameAccess])
 
     useGameStateUpdate(
+        accessToken || "",
         pin,
-        () => {
-            if (accessToken) {
-                if (role === "HOST") {
-                    api.gameState(accessToken, pin).then((_state) => setState(_state))
-                } else {
-                    api.gameStatePlayerView(accessToken, pin, role).then((_stateView) =>
-                        setState(_stateView.state),
-                    )
-                }
+        role,
+        (state) => {
+            if ((state as MagStatePlayerView).playerIndex !== undefined) {
+                setState((state as MagStatePlayerView).state)
+            } else {
+                setState(state as MagState)
             }
         },
-        [accessToken, pin, role],
-        true,
+        [],
     )
 
     useEffect(() => {
