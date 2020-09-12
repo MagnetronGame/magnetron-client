@@ -1,13 +1,14 @@
-import React from "react"
+import React, { CSSProperties } from "react"
 import { MagnetronTheme } from "../magnetronGameStyle"
+import styled, { keyframes } from "styled-components"
 
-const MagnetronCircle: React.FC<{ className?: string; style?: React.CSSProperties }> = ({
+const MagnetronCircleSvg: React.FC<{ className?: string; style?: React.CSSProperties }> = ({
     className,
     style,
 }) => {
     return (
         // prettier-ignore
-        <svg width="136" height="136" viewBox="0 0 136 136" fill="none" xmlns="http://www.w3.org/2000/svg"
+        <svg width="100%" height="100%" viewBox="0 0 136 136" fill="none" xmlns="http://www.w3.org/2000/svg"
              className={className} style={style}
         >
             <path d="M136 68C136 59.0701 134.241 50.2277 130.824 41.9775C127.406 33.7274 122.398 26.2311 116.083 19.9167C109.769 13.6024 102.273 8.59351 94.0225 5.17619C85.7723 1.75887 76.9299 -3.90338e-07 68 0L68 23.5888C73.8322 23.5888 79.6072 24.7375 84.9954 26.9694C90.3837 29.2013 95.2795 32.4726 99.4035 36.5965C103.527 40.7205 106.799 45.6163 109.031 51.0046C111.262 56.3928 112.411 62.1678 112.411 68H136Z"
@@ -34,8 +35,64 @@ const MagnetronCircle: React.FC<{ className?: string; style?: React.CSSPropertie
             <path d="M4 68C4 76.4046 5.65541 84.7269 8.87171 92.4917C12.088 100.257 16.8022 107.312 22.7452 113.255C28.6881 119.198 35.7434 123.912 43.5083 127.128C51.2731 130.345 59.5954 132 68 132L68 109.799C62.5109 109.799 57.0756 108.718 52.0043 106.617C46.933 104.516 42.3252 101.438 38.4438 97.5562C34.5624 93.6748 31.4835 89.067 29.3829 83.9957C27.2824 78.9244 26.2012 73.4891 26.2012 68L4 68Z"
                   fill={MagnetronTheme.magnet.negativeColor.standard}
             />
+            <g filter="url(#filter0_d)">
+                <path d="M32.0654 35.4189H44.7578L67.5 58.2412L90.2422 35.4189H102.935V98H90.2422V52.9961L67.5 74.8975L44.7578 52.9961V98H32.0654V35.4189Z" fill="black"/>
+            </g>
+            <defs>
+                <filter id="filter0_d" x="28.0654" y="33.4189" width="78.8691" height="70.5811" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                    <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                    <feOffset dy="2"/>
+                    <feGaussianBlur stdDeviation="2"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"/>
+                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+                </filter>
+            </defs>
         </svg>
     )
 }
 
-export default MagnetronCircle
+const rotateFrame = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+const MagnetronCircleSpinning = styled(MagnetronCircleSvg)<{ roundTime: number }>`
+    animation: ${rotateFrame} ${(props) => props.roundTime}s linear infinite;
+`
+
+const CircleCenterWrapper = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`
+
+type Props = {
+    className?: string
+    style?: CSSProperties
+    size: "small%" | "full%"
+    rotation?: "slow" | "medium" | "fast"
+}
+const sizePercent = { "small%": "30%", "full%": "90%" }
+const rotateTime = { slow: 6, medium: 4, fast: 2 }
+
+export default ({ className, style, size, rotation }: Props) => {
+    const circleStyle = { width: sizePercent[size], height: sizePercent[size] }
+    return (
+        <CircleCenterWrapper className={className} style={style}>
+            {rotation ? (
+                <MagnetronCircleSpinning roundTime={rotateTime[rotation]} style={circleStyle} />
+            ) : (
+                <MagnetronCircleSvg style={circleStyle} />
+            )}
+        </CircleCenterWrapper>
+    )
+}

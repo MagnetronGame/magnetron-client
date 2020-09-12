@@ -2,7 +2,7 @@ import React from "react"
 import MagnetronHost from "./components/magnetron_host/MagnetronHost"
 import { BrowserRouter as Router, Route, Switch, useLocation } from "react-router-dom"
 import MagnetronFrontPage from "./components/MagnetronFrontpage"
-import MagnetronClient from "./components/magnetron_client/MagnetronClient"
+import MagnetronGameClient from "./components/magnetron_client/MagnetronGameClient"
 import MagnetronLobbyClient from "./components/magnetron_client/MagnetronLobbyClient"
 import MagnetronLobbyHost from "./components/magnetron_host/MagnetronLobbyHost"
 import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCreate"
@@ -48,7 +48,7 @@ function App() {
                         <MagnetronLobbyClient />
                     </Route>
                     <Route path={"/client/game/:pin/:playerIndex"}>
-                        <MagnetronClient />
+                        <MagnetronGameClient />
                     </Route>
 
                     <Route path={"/test"}>

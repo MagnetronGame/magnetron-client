@@ -58,31 +58,21 @@ const createUrl = (
         queryParams ? queryParams : {},
     )
 
+const magStateFromStr = (actionStr: string): MagAction => ({
+    handPieceIndex: parseInt(actionStr[0]),
+    boardPosition: { x: parseInt(actionStr[1]), y: parseInt(actionStr[2]) },
+})
+
+// prettier-ignore
 const clientsInitialActionBuffer: MagAction[][] = [
-    [
-        { handPieceIndex: 0, boardPosition: { x: 0, y: 1 } },
-        { handPieceIndex: 0, boardPosition: { x: 1, y: 1 } },
-        { handPieceIndex: 0, boardPosition: { x: 1, y: 0 } },
-    ],
-    [
-        { handPieceIndex: 0, boardPosition: { x: 1, y: 4 } },
-        { handPieceIndex: 0, boardPosition: { x: 1, y: 3 } },
-        { handPieceIndex: 0, boardPosition: { x: 0, y: 3 } },
-    ],
-    [
-        { handPieceIndex: 0, boardPosition: { x: 3, y: 0 } },
-        { handPieceIndex: 0, boardPosition: { x: 3, y: 1 } },
-        { handPieceIndex: 0, boardPosition: { x: 4, y: 1 } },
-    ],
-    [
-        { handPieceIndex: 0, boardPosition: { x: 4, y: 3 } },
-        { handPieceIndex: 0, boardPosition: { x: 3, y: 3 } },
-        { handPieceIndex: 0, boardPosition: { x: 3, y: 4 } },
-    ],
-]
+    ["003", "001", "010",   "000", "040", "010"],
+    ["014", "034", "041",   "032", "021", "011"],
+    ["030", "021", "043",   "043", "003", "012"],
+    ["032", "031", "033",   "044", "014", "004"],
+].map((actions) => actions.map(magStateFromStr))
 
 const clientCount = 4
-const clientsRange = range(4)
+const clientsRange = range(clientCount)
 
 const MagnetronTestAll = () => {
     const { actions: inputPredefinedActions } = parseQueryParams(useLocation().search)
@@ -104,7 +94,7 @@ const MagnetronTestAll = () => {
             ...prevUrls.slice(index + 1),
         ])
 
-    const gotoGameWithActionsBuffer = () => {
+    const gotoGameWithActionsBuffer = (): void => {
         clientsRange.forEach((index) => {
             if (clientsActionBuffer[index].length > 0) {
                 const gameUrl = createUrl(index, `/client/game/${inputPin}/${index}`, {
@@ -116,7 +106,7 @@ const MagnetronTestAll = () => {
     }
 
     const handleClientsJoin = () => {
-        clientsRange.map((index) => {
+        clientsRange.forEach((index) => {
             const joinUrl = createUrl(index, `/client/lobby/join/${inputPin}`, {
                 autoJoinName: `frank${index}`,
             })

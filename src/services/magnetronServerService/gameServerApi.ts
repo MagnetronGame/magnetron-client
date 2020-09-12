@@ -1,6 +1,6 @@
 import { MagAction, MagState, MagStatePlayerView } from "./magnetronGameTypes"
 
-export const apiAddress = "http://localhost:8080"
+export const apiAddress = "https://magnetron.no" // "http://localhost:8080"
 const apiPrefix = "/api"
 const apiUrl = `${apiAddress}${apiPrefix}`
 

@@ -68,22 +68,3 @@ export const StyledPieceComp = styled(PieceComp)<{ active?: boolean }>`
     width: auto;
     ${(props) => props.active && `box-shadow: 0px 0px 20px 3px ${CHOSEN_CELL_COLOR}`};
 `
-
-export const Overlay = styled.div<{ black?: boolean }>`
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background-color: ${(props) => (props.black ? "black" : "#00000099")};
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-`
-
-export const OverlayText = styled.div`
-    text-align: center;
-    font-family: "Krona One", sans-serif;
-    font-size: 32px;
-    color: white;
-`

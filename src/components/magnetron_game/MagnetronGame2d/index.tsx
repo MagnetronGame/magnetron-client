@@ -13,12 +13,9 @@ import {
     CellPieceWrapper,
     HandContainer,
     HandPieceWrapper,
-    Overlay,
-    OverlayText,
     StyledPieceComp,
     Wrapper,
 } from "./elements"
-import MagnetronCircleSpinning from "../../MagnetronCircleSpinning"
 
 type Props = {
     className?: string
@@ -26,10 +23,8 @@ type Props = {
     magState: MagState
     possibleMagActions: MagAction[]
     onMagAction: (action: MagAction) => void
+    disabled?: boolean
 }
-
-const simulationTimeBase = 10
-const simulationTimePerState = 2
 
 const MagnetronGame2d: React.FC<Props> = ({
     className,
@@ -37,11 +32,9 @@ const MagnetronGame2d: React.FC<Props> = ({
     magState,
     possibleMagActions,
     onMagAction,
+    disabled,
 }) => {
     const [chosenCell, setChosenCell] = useState<Vec2I | null>(null)
-    const [simulating, setSimulating] = useState<boolean>(false)
-
-    console.log("State", magState)
 
     const boardWithAvatars = magState.board.map((boardRow, y) =>
         boardRow.map((boardPiece, x) => {
@@ -54,30 +47,14 @@ const MagnetronGame2d: React.FC<Props> = ({
 
     const hand = magState.avatars[playerIndex].hand
 
-    const myTurn = magState.avatarTurnIndex === playerIndex
-
     useEffect(() => {
-        if (magState.didSimulate) {
-            setSimulating(true)
-            const simulationTime =
-                (simulationTimeBase + magState.simulationStates.length * simulationTimePerState) *
-                1000
-            const timeoutHandle = setTimeout(() => setSimulating(false), simulationTime)
-            return () => {
-                clearTimeout(timeoutHandle)
-                setSimulating(false)
-            }
-        }
-    }, [magState.didSimulate, magState.simulationStates])
-
-    useEffect(() => {
-        if (!myTurn || simulating) {
+        if (disabled) {
             setChosenCell(null)
         }
-    }, [myTurn, simulating])
+    }, [disabled])
 
     const handleBoardCellClicked = (boardPos: Vec2I) => {
-        if (myTurn && !simulating) {
+        if (!disabled) {
             if (chosenCell && vec2i.equals(chosenCell, boardPos)) {
                 setChosenCell(null)
             } else {
@@ -104,17 +81,6 @@ const MagnetronGame2d: React.FC<Props> = ({
 
     return (
         <Wrapper className={className}>
-            {simulating ? (
-                <Overlay black={true}>
-                    <MagnetronCircleSpinning />
-                </Overlay>
-            ) : (
-                !myTurn && (
-                    <Overlay>
-                        <OverlayText>Player {magState.avatarTurnIndex}'s turn</OverlayText>
-                    </Overlay>
-                )
-            )}
             <BoardGrid
                 boardWidth={magState.staticState.boardWidth}
                 boardHeight={magState.staticState.boardHeight}

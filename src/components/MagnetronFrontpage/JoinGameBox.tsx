@@ -1,8 +1,7 @@
 import React, { useState } from "react"
 import styled from "styled-components"
-import { MagnetColorByType, MagnetronTheme } from "../../magnetronGameStyle"
+import { MagnetronTheme } from "../../magnetronGameStyle"
 import { Link } from "react-router-dom"
-import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 
 const Wrapper = styled.div`
     box-sizing: border-box;

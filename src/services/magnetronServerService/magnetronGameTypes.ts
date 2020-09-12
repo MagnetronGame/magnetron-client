@@ -70,6 +70,10 @@ export type Vec2I = {
 
 export interface MagState {
     staticState: MagStaticState
+
+    isTerminal: boolean
+    avatarIndicesWon: number[]
+
     roundCount: number
     roundStartIndex: number
     simulationsCount: number

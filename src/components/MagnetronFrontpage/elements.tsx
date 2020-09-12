@@ -1,25 +1,56 @@
-import styled from "styled-components"
-import MagnetronTitleLogo from "../MagnetronTitleLogo"
 import React, { PropsWithChildren } from "react"
+import styled, { keyframes } from "styled-components"
+import MagnetronTitleLogo from "../MagnetronTitleLogo"
 import { MagnetColorByType, MagnetronTheme } from "../../magnetronGameStyle"
 import { Link } from "react-router-dom"
 import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
+import MagnetronHowTo from "../MagnetronHowTo"
 
 export const Wrapper = styled.div`
     width: 100%;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+`
+
+export const AppWrapper = styled.div`
+    width: 100%;
+    height: 100vh;
 
     font-family: "Roboto", sans-serif;
 
     display: grid;
     grid-template-columns: 1fr minmax(300px, 1fr) 1fr;
-    grid-template-rows: minmax(0, 1fr) 64px minmax(0, 1fr) minmax(0, 1fr) 64px;
+    grid-template-rows: minmax(0, 1fr) 64px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.5fr);
     grid-template-areas:
         "title title title"
         "nav nav nav"
         ". join-game ."
         ". host-game ."
-        ". . .";
+        ". see-below .";
+`
+
+export const StyledMagnetronHowTo = styled(MagnetronHowTo)`
+    width: 100%;
+    height: 100%;
+    padding: 0 10%;
+    box-sizing: border-box;
+`
+
+const blinkFrames = keyframes`
+  from {
+    color: black;
+  }
+
+  to {
+    color: white;
+  }
+`
+export const SeeBelowArea = styled.div`
+    grid-area: see-below;
+    font-size: 32px;
+    color: black;
+    text-align: center;
+    animation: ${blinkFrames} 1.5s linear infinite alternate;
 `
 
 export const TitleArea = styled.div`

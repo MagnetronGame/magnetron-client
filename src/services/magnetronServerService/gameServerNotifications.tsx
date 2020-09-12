@@ -1,7 +1,7 @@
+import React, { DependencyList, EffectCallback, useCallback, useEffect, useState } from "react"
 import { IFrame, Client, StompSubscription } from "@stomp/stompjs"
 import * as api from "./gameServerApi"
 import SockJS from "sockjs-client"
-import { DependencyList, EffectCallback, useCallback, useEffect, useState } from "react"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
 import { MagState, MagStatePlayerView } from "./magnetronGameTypes"
 
