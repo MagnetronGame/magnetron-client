@@ -6,6 +6,7 @@ import { MagnetronTheme } from "../../../magnetronGameStyle"
 
 export const Overlay = styled.div<{ opacity?: number }>`
     position: fixed;
+    z-index: 10;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, ${(props) => props.opacity || 1});

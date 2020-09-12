@@ -6,6 +6,7 @@ import {
     Piece,
 } from "../../../services/magnetronServerService/magnetronGameTypes"
 import { MagnetColorByType, MagnetronTheme } from "../../../magnetronGameStyle"
+import styled from "styled-components"
 
 const MagnetPiecePosComp: React.FC<{
     className?: string
@@ -110,6 +111,14 @@ export const MagnetPieceComp: React.FC<{
         </svg>)
 }
 
+const AvatarPlayerMeta = styled.div`
+    position: fixed;
+    z-index: 0;
+    color: white;
+    font-family: "Krona One", sans-serif;
+    font-size: 32px;
+`
+
 export const PieceComp: React.FC<{
     className?: string
     style?: React.CSSProperties
@@ -118,11 +127,14 @@ export const PieceComp: React.FC<{
     switch (piece.type) {
         case "Avatar":
             return (
-                <AvatarPieceComp
-                    className={className}
-                    style={style}
-                    avatarPiece={piece as Avatar}
-                />
+                <>
+                    <AvatarPieceComp
+                        className={className}
+                        style={style}
+                        avatarPiece={piece as Avatar}
+                    />
+                    <AvatarPlayerMeta>{(piece as Avatar).index}</AvatarPlayerMeta>
+                </>
             )
         case "CoinPiece":
             return <CoinPieceComp className={className} style={style} />
