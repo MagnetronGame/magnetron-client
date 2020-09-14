@@ -1,23 +1,11 @@
 import React, { useState } from "react"
 import styled from "styled-components"
-import { MagnetronTheme } from "../../magnetronGameStyle"
-import { Link } from "react-router-dom"
+import Box from "../Box"
+import Button from "../Button"
+import { isNumeric } from "../../utils/stringUtils"
+import { useHistory } from "react-router-dom"
 
-const Wrapper = styled.div`
-    box-sizing: border-box;
-    box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
-    width: 100%;
-    height: 100%;
-    background-color: ${MagnetronTheme.magnet.positiveColor.standard};
-    border-radius: 20px;
-    font-size: 32px;
-    color: white;
-    padding: 20px 20px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-`
+type Props = {}
 
 const InputPinArea = styled.div`
     display: flex;
@@ -26,9 +14,11 @@ const InputPinArea = styled.div`
     box-sizing: border-box;
 `
 const PinLabel = styled.span``
-const PinInput = styled.input`
+const PinInput = styled.input<{ invalid?: boolean }>`
     height: 100%;
     width: 4em;
+    background-color: ${(props) =>
+        props.invalid ? props.theme.magnet.positiveColor.lighter : "white"};
     color: black;
     font-family: "Krona One", sans-serif;
     font-size: 36px;
@@ -37,28 +27,34 @@ const PinInput = styled.input`
     border-bottom: 1px solid black;
 `
 
-const JoinButton = styled(Link)`
-    //width: 70%;
-    outline: none;
-    border-style: solid none;
-    border-color: black;
-    border-width: 3px;
-    background-color: #ffffff44;
-    text-decoration: none;
-    font-size: inherit;
-    cursor: pointer;
-    color: black;
-    text-align: center;
-    &:hover {
-        background-color: #ffffff70;
-    }
-`
+const validatePinInput = (pin: string): boolean => pin.length === 4 && validatePartialPinInput(pin)
 
-const JoinGameBox = () => {
+const validatePartialPinInput = (pin: string) =>
+    pin.length === 0 || [...pin].every((c) => isNumeric(c))
+
+const JoinGameBox: React.FC<Props> = () => {
     const [inputPin, setInputPin] = useState<string>("")
+    const [inputPinInvalid, setInputPinInvalid] = useState<boolean>(false)
+    const history = useHistory()
+
+    const handleInputPinChange = (e: React.FormEvent<HTMLInputElement>) => {
+        const value = e.currentTarget.value
+        if (validatePartialPinInput(value)) {
+            setInputPin(value)
+            inputPinInvalid && setInputPinInvalid(false)
+        }
+    }
+
+    const handleJoinGameClicked = () => {
+        if (validatePinInput(inputPin)) {
+            history.push(`/client/lobby/join/${inputPin}`)
+        } else {
+            setInputPinInvalid(true)
+        }
+    }
 
     return (
-        <Wrapper>
+        <Box type={"red"} style={{ padding: "0 0", width: "100%", height: "100%" }}>
             <InputPinArea>
                 <PinLabel>Pin:&nbsp;</PinLabel>
                 <PinInput
@@ -66,11 +62,20 @@ const JoinGameBox = () => {
                     maxLength={4}
                     placeholder={"1234"}
                     value={inputPin}
-                    onChange={(e) => setInputPin(e.target.value)}
+                    invalid={inputPinInvalid}
+                    onChange={handleInputPinChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleJoinGameClicked()}
                 />
             </InputPinArea>
-            <JoinButton to={`/client/lobby/join/${inputPin}`}>Join game &rArr;</JoinButton>
-        </Wrapper>
+            <Button
+                buttonType={"lined"}
+                fontSize={"large"}
+                onClick={() => handleJoinGameClicked()}
+                style={{ width: "100%", padding: "0 inherit" }}
+            >
+                Join game &rArr;
+            </Button>
+        </Box>
     )
 }
 

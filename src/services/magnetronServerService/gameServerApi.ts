@@ -1,10 +1,23 @@
 import { MagAction, MagState, MagStatePlayerView } from "./magnetronGameTypes"
+import { reconnect } from "./gameServerNotifications"
 
-// export const apiAddress = "https://magnetron.no"
-export const apiAddress = "http://localhost:8080"
+const ApiAddresses = {
+    PUBLIC: "https://magnetron.no",
+    LOCAL: "http://localhost:8080",
+}
+
+export type ApiAddressesType = keyof typeof ApiAddresses
+
+let apiAddress: string = ApiAddresses.PUBLIC
+
+export const setApiAddress = (type: ApiAddressesType) => {
+    apiAddress = ApiAddresses[type]
+    reconnect()
+}
 
 const apiPrefix = "/api"
-const apiUrl = `${apiAddress}${apiPrefix}`
+export const baseUrl = () => apiAddress
+export const apiBaseUrl = () => `${apiAddress}${apiPrefix}`
 
 type CreateGameResponse = {
     pin: string
@@ -23,7 +36,7 @@ type Lobby = {
 }
 
 export const createLobby = (): Promise<CreateGameResponse> =>
-    fetch(`${apiUrl}/createLobby`, {
+    fetch(`${apiBaseUrl()}/createLobby`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
     })
@@ -32,7 +45,7 @@ export const createLobby = (): Promise<CreateGameResponse> =>
         .then((pin) => pin as CreateGameResponse)
 
 export const getLobby = (accessToken: string, pin: string, signal?: AbortSignal): Promise<Lobby> =>
-    fetch(`${apiUrl}/lobby/${pin}`, {
+    fetch(`${apiBaseUrl()}/lobby/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
         signal,
@@ -42,7 +55,7 @@ export const getLobby = (accessToken: string, pin: string, signal?: AbortSignal)
         .then((lobby) => lobby as Lobby)
 
 export const startGame = (accessToken: string, pin: string): Promise<boolean> =>
-    fetch(`${apiUrl}/startGame/${pin}`, {
+    fetch(`${apiBaseUrl()}/startGame/${pin}`, {
         method: "POST",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
@@ -50,7 +63,7 @@ export const startGame = (accessToken: string, pin: string): Promise<boolean> =>
         .then((res) => res.json())
 
 export const joinLobby = (pin: string, name: string): Promise<JoinGameResponse> =>
-    fetch(`${apiUrl}/joinLobby/${pin}`, {
+    fetch(`${apiBaseUrl()}/joinLobby/${pin}`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: name,
@@ -60,7 +73,7 @@ export const joinLobby = (pin: string, name: string): Promise<JoinGameResponse> 
         .then((resJ) => resJ as JoinGameResponse)
 
 export const lobbyExists = (accessToken: string, pin: string): Promise<boolean> =>
-    fetch(`${apiUrl}/lobbyExists/${pin}`, {
+    fetch(`${apiBaseUrl()}/lobbyExists/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
@@ -73,7 +86,7 @@ export const gameExists = (
     pin: string,
     signal?: AbortSignal,
 ): Promise<boolean> =>
-    fetch(`${apiUrl}/gameExists/${pin}`, {
+    fetch(`${apiBaseUrl()}/gameExists/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
         signal: signal,
@@ -83,7 +96,7 @@ export const gameExists = (
         .then((exists) => exists as boolean)
 
 export const gameState = (accessToken: string, pin: string): Promise<MagState> =>
-    fetch(`${apiUrl}/gameState/${pin}`, {
+    fetch(`${apiBaseUrl()}/gameState/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
@@ -97,7 +110,7 @@ export const gameStatePlayerView = (
     pin: string,
     playerIndex: number,
 ): Promise<MagStatePlayerView> =>
-    fetch(`${apiUrl}/gameState/${pin}/${playerIndex}`, {
+    fetch(`${apiBaseUrl()}/gameState/${pin}/${playerIndex}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
@@ -107,7 +120,7 @@ export const gameStatePlayerView = (
         .then((gameState) => gameState as MagStatePlayerView)
 
 export const possibleActions = (accessToken: string, pin: string): Promise<MagAction[]> =>
-    fetch(`${apiUrl}/possibleActions/${pin}`, {
+    fetch(`${apiBaseUrl()}/possibleActions/${pin}`, {
         method: "GET",
         headers: { "Content-type": "application/json", Authorization: accessToken },
     })
@@ -120,7 +133,7 @@ export const performAction = (
     pin: string,
     action: MagAction,
 ): Promise<MagState> =>
-    fetch(`${apiUrl}/performAction/${pin}`, {
+    fetch(`${apiBaseUrl()}/performAction/${pin}`, {
         method: "POST",
         headers: { "Content-type": "application/json", Authorization: accessToken },
         body: JSON.stringify(action),

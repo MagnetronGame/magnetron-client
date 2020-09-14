@@ -46,6 +46,7 @@ const MagnetronGame2d: React.FC<Props> = ({
     )
 
     const hand = magState.avatars[playerIndex].hand
+    const handPieceWidthRatio = 1 / 3 // start hand should be included in static state
 
     useEffect(() => {
         if (disabled) {
@@ -112,6 +113,7 @@ const MagnetronGame2d: React.FC<Props> = ({
                     return (
                         <HandPieceWrapper
                             key={handIndex + JSON.stringify(handMagnetPiece)}
+                            handPieceWidthRatio={handPieceWidthRatio}
                             onClick={() => handleHandPieceClick(handIndex)}
                         >
                             <StyledPieceComp

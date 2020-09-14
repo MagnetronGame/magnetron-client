@@ -1,5 +1,5 @@
 import React, { CSSProperties } from "react"
-import { MagnetronTheme } from "../magnetronGameStyle"
+import MagnetronTheme from "../MagnetronTheme"
 import styled, { keyframes } from "styled-components"
 
 const MagnetronCircleSvg: React.FC<{ className?: string; style?: React.CSSProperties }> = ({

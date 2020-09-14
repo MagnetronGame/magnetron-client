@@ -5,10 +5,14 @@ import SockJS from "sockjs-client"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
 import { MagState, MagStatePlayerView } from "./magnetronGameTypes"
 
-let socket = new SockJS(`${api.apiAddress}/magnetron-notify`)
 let stompClient = new Client({
-    webSocketFactory: () => socket,
+    webSocketFactory: () => new SockJS(`${api.baseUrl()}/magnetron-notify`),
 })
+
+export const reconnect = () => {
+    stompClient.deactivate()
+    stompClient.activate()
+}
 
 const onConnectCallbacks: frameCallbackType[] = []
 const onDisconnectCallbacks: frameCallbackType[] = []

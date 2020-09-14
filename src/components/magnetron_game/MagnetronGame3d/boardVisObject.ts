@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { range } from "../../../utils/arrayUtils"
 import { StaticBoard } from "./board"
-import { MagnetronTheme } from "../../../magnetronGameStyle"
+import MagnetronTheme from "../../../MagnetronTheme"
 
 export type VisBoardPlate = {
     object: THREE.Object3D

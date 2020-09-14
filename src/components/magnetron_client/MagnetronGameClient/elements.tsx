@@ -2,7 +2,7 @@ import styled from "styled-components"
 import MagnetronCircle from "../../MagnetronCircle"
 import { Link } from "react-router-dom"
 import React from "react"
-import { MagnetronTheme } from "../../../magnetronGameStyle"
+import MagnetronTheme from "../../../MagnetronTheme"
 
 export const Overlay = styled.div<{ opacity?: number }>`
     position: fixed;

@@ -74,6 +74,13 @@ const clientsInitialActionBuffer: MagAction[][] = [
 const clientCount = 4
 const clientsRange = range(clientCount)
 
+const ControlPanelWrapper = styled.div`
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`
+
 const MagnetronTestAll = () => {
     const { actions: inputPredefinedActions } = parseQueryParams(useLocation().search)
     const [hostUrl, setHostUrl] = useState<string>(createUrl("host"))
@@ -124,12 +131,14 @@ const MagnetronTestAll = () => {
                 <GameFrame title={`Client${i}`} src={url} />
             ))}
         >
-            <input
-                value={inputPin}
-                placeholder={"Clients pin"}
-                onKeyDown={(e) => e.key === "Enter" && handleClientsJoin()}
-                onChange={(e) => setInputPin(e.target.value)}
-            />
+            <ControlPanelWrapper>
+                <input
+                    value={inputPin}
+                    placeholder={"Clients pin"}
+                    onKeyDown={(e) => e.key === "Enter" && handleClientsJoin()}
+                    onChange={(e) => setInputPin(e.target.value)}
+                />
+            </ControlPanelWrapper>
         </MagnetronMultiPage>
     )
 }

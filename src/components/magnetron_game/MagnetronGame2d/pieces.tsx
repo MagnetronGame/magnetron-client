@@ -5,7 +5,7 @@ import {
     MagnetType,
     Piece,
 } from "../../../services/magnetronServerService/magnetronGameTypes"
-import { MagnetColorByType, MagnetronTheme } from "../../../magnetronGameStyle"
+import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
 import styled from "styled-components"
 
 const MagnetPiecePosComp: React.FC<{

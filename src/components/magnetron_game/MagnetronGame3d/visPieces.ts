@@ -8,7 +8,7 @@ import {
 } from "../../../services/magnetronServerService/magnetronGameTypes"
 import * as THREE from "three"
 import { StaticBoard } from "./board"
-import { MagnetColorByType, MagnetronTheme } from "../../../magnetronGameStyle"
+import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
 
 export type VisPiece = {
     type: string

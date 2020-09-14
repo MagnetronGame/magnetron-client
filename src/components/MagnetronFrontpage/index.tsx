@@ -12,7 +12,7 @@ import {
     Wrapper,
 } from "./elements"
 import JoinGameBox from "./JoinGameBox"
-import MagnetronHowTo from "../MagnetronHowTo"
+import Button from "../Button"
 
 const MagnetronFrontpage = () => {
     return (
@@ -29,10 +29,16 @@ const MagnetronFrontpage = () => {
                     <JoinGameBox></JoinGameBox>
                 </JoinGameArea>
                 <HostGameArea>
-                    <HostGameButton to={"/host/lobby/create"}>Host game &rArr;</HostGameButton>
+                    <HostGameButton
+                        buttonType={"blue"}
+                        fontSize={"large"}
+                        linkTo={"/host/lobby/create"}
+                    >
+                        Host game &rArr;
+                    </HostGameButton>
                 </HostGameArea>
                 <SeeBelowArea>
-                    How to
+                    How to play
                     <br />
                     &dArr;
                 </SeeBelowArea>

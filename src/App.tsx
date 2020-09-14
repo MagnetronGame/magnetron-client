@@ -9,8 +9,11 @@ import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCrea
 import MagnetronGameStart from "./components/magnetron_host/MagnetronGameStart"
 import MagnetronLobbyJoin from "./components/magnetron_client/MagnetronLobbyJoin"
 import MagnetronTestAll from "./components/magnetron_test/MagnetronTestAll"
-import { parseQueryParams, stringifyQueryParams } from "./utils/queryParser"
+import { parseQueryParams } from "./utils/queryParser"
 import { setCookiePrefix } from "./services/cookies"
+import { ThemeProvider } from "styled-components"
+import MagnetronTheme from "./MagnetronTheme"
+import PageWrapper from "./components/PageWrapper"
 
 function App() {
     const { cookiePrefix } = parseQueryParams(window.location.search)
@@ -18,45 +21,53 @@ function App() {
         setCookiePrefix(cookiePrefix)
     }
 
+    const routePage = (
+        <Router>
+            <Switch>
+                <Route exact path={"/"}>
+                    <MagnetronFrontPage />
+                </Route>
+
+                <Route path={"/host/lobby/create"}>
+                    <MagnetronLobbyCreate />
+                </Route>
+
+                <Route path={"/host/lobby/:pin"}>
+                    <MagnetronLobbyHost />
+                </Route>
+
+                <Route path={"/host/game/start/:pin"}>
+                    <MagnetronGameStart />
+                </Route>
+                <Route path={"/host/game/:pin"}>
+                    <MagnetronHost />
+                </Route>
+
+                <Route path={"/client/lobby/join/:pin"}>
+                    <MagnetronLobbyJoin />
+                </Route>
+                <Route path={"/client/lobby/:pin/:playerIndex"}>
+                    <MagnetronLobbyClient />
+                </Route>
+                <Route path={"/client/game/:pin/:playerIndex"}>
+                    <MagnetronGameClient />
+                </Route>
+
+                <Route path={"/test"}>
+                    <MagnetronTestAll />
+                </Route>
+            </Switch>
+        </Router>
+    )
+
     return (
-        <div style={{ height: "100vh" }}>
-            <Router>
-                <Switch>
-                    <Route exact path={"/"}>
-                        <MagnetronFrontPage />
-                    </Route>
-
-                    <Route path={"/host/lobby/create"}>
-                        <MagnetronLobbyCreate />
-                    </Route>
-
-                    <Route path={"/host/lobby/:pin"}>
-                        <MagnetronLobbyHost />
-                    </Route>
-
-                    <Route path={"/host/game/start/:pin"}>
-                        <MagnetronGameStart />
-                    </Route>
-                    <Route path={"/host/game/:pin"}>
-                        <MagnetronHost />
-                    </Route>
-
-                    <Route path={"/client/lobby/join/:pin"}>
-                        <MagnetronLobbyJoin />
-                    </Route>
-                    <Route path={"/client/lobby/:pin/:playerIndex"}>
-                        <MagnetronLobbyClient />
-                    </Route>
-                    <Route path={"/client/game/:pin/:playerIndex"}>
-                        <MagnetronGameClient />
-                    </Route>
-
-                    <Route path={"/test"}>
-                        <MagnetronTestAll />
-                    </Route>
-                </Switch>
-            </Router>
-        </div>
+        <ThemeProvider theme={MagnetronTheme}>
+            <div style={{ height: "100vh" }}>
+                <PageWrapper development={process.env.NODE_ENV === "development"}>
+                    {routePage}
+                </PageWrapper>
+            </div>
+        </ThemeProvider>
     )
 }
 

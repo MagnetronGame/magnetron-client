@@ -1,6 +1,8 @@
 import { MagnetType } from "./services/magnetronServerService/magnetronGameTypes"
 import { shade } from "./utils/colors"
 
+export type FontSizes = "small" | "medium" | "large" | "largePlus"
+
 export type ColorTypes = {
     standard: string
     lighter: string
@@ -8,6 +10,13 @@ export type ColorTypes = {
 }
 
 export type MagnetronThemeType = {
+    fonts: {
+        types: {
+            standard: string
+            cool: string
+        }
+        sizes: { [k in FontSizes]: string }
+    }
     magnet: {
         baseColorInner: string
         baseColorOuter: string
@@ -26,19 +35,31 @@ export type MagnetronThemeType = {
     }
 }
 
-export const MagnetronTheme: MagnetronThemeType = {
+const MagnetronTheme: MagnetronThemeType = {
+    fonts: {
+        types: {
+            standard: "",
+            cool: '"Krona One", sans-serif',
+        },
+        sizes: {
+            largePlus: "36px",
+            large: "32px",
+            medium: "24px",
+            small: "16px",
+        },
+    },
     magnet: {
         baseColorInner: "#8ca6a8",
         baseColorOuter: "#7B9095",
         positiveColor: {
             standard: "#ff3c2d",
-            lighter: "#ff7e79", // shade(0.2, "#ff3c2d"),
-            darker: "#c62e23", // shade(-0.4, "#ff3c2d"),
+            lighter: "#ff7e79",
+            darker: "#c62e23",
         },
         negativeColor: {
             standard: "#433aff",
-            lighter: "#817dff", // shade(0.2, "#433aff"),
-            darker: "#342dc6", // shade(-0.4, "#433aff"),
+            lighter: "#817dff",
+            darker: "#342dc6",
         },
         fakeColor: {
             standard: "#3b3b3b",
@@ -60,6 +81,8 @@ export const MagnetronTheme: MagnetronThemeType = {
         edgeColor: "#6f84a6",
     },
 }
+
+export default MagnetronTheme
 
 export const MagnetColorByType: Record<MagnetType, ColorTypes> = {
     [MagnetType.POSITIVE]: MagnetronTheme.magnet.positiveColor,

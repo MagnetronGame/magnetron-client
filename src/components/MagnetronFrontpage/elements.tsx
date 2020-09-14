@@ -1,10 +1,11 @@
 import React, { PropsWithChildren } from "react"
 import styled, { keyframes } from "styled-components"
 import MagnetronTitleLogo from "../MagnetronTitleLogo"
-import { MagnetColorByType, MagnetronTheme } from "../../magnetronGameStyle"
+import MagnetronTheme, { MagnetColorByType } from "../../MagnetronTheme"
 import { Link } from "react-router-dom"
 import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 import MagnetronHowTo from "../MagnetronHowTo"
+import Button from "../Button"
 
 export const Wrapper = styled.div`
     width: 100%;
@@ -15,11 +16,11 @@ export const Wrapper = styled.div`
 export const AppWrapper = styled.div`
     width: 100%;
     height: 100vh;
-
+    //flex: 0 0 80%;
     font-family: "Roboto", sans-serif;
 
     display: grid;
-    grid-template-columns: 1fr minmax(300px, 1fr) 1fr;
+    grid-template-columns: 1fr minmax(300px, 350px) 1fr;
     grid-template-rows: minmax(0, 1fr) 64px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.5fr);
     grid-template-areas:
         "title title title"
@@ -88,28 +89,12 @@ export const JoinGameArea = styled.div`
 
 export const HostGameArea = styled.div`
     grid-area: host-game;
-    padding: 20px;
+    padding: 30px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
 `
 
-export const HostGameButton = styled(Link)`
-    box-sizing: border-box;
-    max-width: 100%;
-    max-height: 100%;
-    box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
-    border-radius: 20px;
-    background-color: ${MagnetronTheme.magnet.negativeColor.standard};
+export const HostGameButton = styled(Button)`
     padding: 20px 10%;
-    border: none;
-    outline: none;
-    text-decoration: none;
-    font-size: 32px;
-    color: #ffffff;
-    cursor: pointer;
-
-    &:hover {
-        background-color: ${MagnetColorByType[MagnetType.NEGATIVE]}b0;
-    }
 `

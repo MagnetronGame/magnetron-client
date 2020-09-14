@@ -105,8 +105,8 @@ export class Board {
             )
         }
         this.retatchVisPiece(visPiece, fromBoardPos, toBoardPos)
-        const fromPos = this.boardPosToActualPos(fromBoardPos)
-        const toPos = this.boardPosToActualPos(toBoardPos)
+        const fromPos = this.boardPosToWorldPos(fromBoardPos)
+        const toPos = this.boardPosToWorldPos(toBoardPos)
         const moveAnim: SingleAnim = {
             name: `Move piece ${visPiece.pieceData.type} from ${vec2i.toString(
                 fromBoardPos,
@@ -164,14 +164,14 @@ export class Board {
         this.attachVisPiece(visPiece, toBoardPos)
     }
 
-    private boardPosToActualPos(boardPos: Vec2I): THREE.Vector3 {
+    public boardPosToWorldPos(boardPos: Vec2I): THREE.Vector3 {
         const pos = this.staticBoard.cellsCenterPosition[boardPos.x][boardPos.y]
         return new THREE.Vector3(pos.x, this.staticBoard.thickness / 2, pos.y)
     }
 
     private addVisPieceGraphics(visPiece: VisPiece, boardPos: Vec2I) {
         const pieceObject = visPiece.pieceObject
-        const pos = this.boardPosToActualPos(boardPos)
+        const pos = this.boardPosToWorldPos(boardPos)
         pieceObject.position.copy(pos)
         this.visPiecesContainer.add(visPiece.pieceObject)
     }

@@ -8,8 +8,6 @@ import {
     Piece,
     Vec2I,
 } from "../../../services/magnetronServerService/magnetronGameTypes"
-import { InlineAnimation } from "./animation/InlineAnimation"
-import { ChainedAnimations } from "./animation/chainedAnimations"
 import { Anim, ChainedAnims } from "./animation/animationTypes"
 import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
 import { Anims, Duration } from "./animation/animationHelpers"
@@ -136,6 +134,27 @@ export class Magnetron {
             default:
                 return false
         }
+    }
+
+    private worldToScreenPos = (position: THREE.Vector3, camera: THREE.Camera): Vec2I => {
+        // obj.updateMatrixWorld()
+        const _position = position.clone()
+        _position.project(camera)
+        return {
+            x: _position.x,
+            y: _position.y,
+        }
+    }
+
+    public getAvatarsScreenPosition = () => {
+        if (this.board) {
+            return this.board
+                .getPiecesWithPosOfType("Avatar")
+                .sort(([a1], [a2]) => (a1 as Avatar).index - (a2 as Avatar).index)
+                .map(([_, boardPos]) => boardPos)
+                .map((boardPos) => this.board!.boardPosToWorldPos(boardPos))
+                .map((pos) => this.worldToScreenPos(pos, this.camera))
+        } else return []
     }
 
     private setState(state: MagState): ChainedAnims {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useState } from "react"
 import * as api from "./gameServerApi"
 import { Access } from "./helpers"
 import { cookies } from "../cookies"
