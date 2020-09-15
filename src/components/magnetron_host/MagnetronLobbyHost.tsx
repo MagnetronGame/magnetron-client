@@ -57,7 +57,7 @@ const MagnetronLobbyHost: React.FC<Props> = () => {
         <div style={{ textAlign: "center" }}>{message}</div>
     ) : (
         <Wrapper>
-            <ShowPin>{pin}</ShowPin>
+            <ShowPin id={"showPin"}>{pin}</ShowPin>
             <PlayersArea>
                 {connectedPlayers.map((name) => (
                     <Player key={name}>{name}</Player>

@@ -83,16 +83,33 @@ const ControlPanelWrapper = styled.div`
 
 const MagnetronTestAll = () => {
     const { actions: inputPredefinedActions } = parseQueryParams(useLocation().search)
-    const [hostUrl, setHostUrl] = useState<string>(createUrl("host"))
+    const [hostUrl, setHostUrl] = useState<string>(createUrl("host", "/host/lobby/create"))
     const [clientsUrl, setClientsUrl] = useState<string[]>(
         clientsRange.map((index) => createUrl(index)),
     )
-
+    const hostFrameRef = useRef<HTMLIFrameElement>(null)
     const [inputPin, setInputPin] = useState<string>("")
 
     const [clientsActionBuffer, setClientsActionBuffer] = useState<MagAction[][]>(
         inputPredefinedActions ? clientsInitialActionBuffer : clientsRange.map(() => []),
     )
+
+    useEffect(() => {
+        if (hostFrameRef.current) {
+            const frame = hostFrameRef.current
+            const handle = setInterval(() => {
+                if (frame && frame.contentWindow) {
+                    const hostPinElem = frame.contentWindow.document.querySelector("#showPin")
+                    if (hostPinElem !== null) {
+                        const _pin = hostPinElem.innerHTML
+                        setInputPin(_pin)
+                        handleClientsJoin(_pin)
+                        clearInterval(handle)
+                    }
+                }
+            }, 500)
+        }
+    }, [hostFrameRef])
 
     const setClientIndexUrl = (index: number, url: string) =>
         setClientsUrl((prevUrls) => [
@@ -101,10 +118,10 @@ const MagnetronTestAll = () => {
             ...prevUrls.slice(index + 1),
         ])
 
-    const gotoGameWithActionsBuffer = (): void => {
+    const gotoGameWithActionsBuffer = (_inputPin: string = inputPin): void => {
         clientsRange.forEach((index) => {
             if (clientsActionBuffer[index].length > 0) {
-                const gameUrl = createUrl(index, `/client/game/${inputPin}/${index}`, {
+                const gameUrl = createUrl(index, `/client/game/${_inputPin}/${index}`, {
                     actionsBuffer: JSON.stringify(clientsActionBuffer[index]),
                 })
                 setClientIndexUrl(index, gameUrl)
@@ -112,21 +129,25 @@ const MagnetronTestAll = () => {
         })
     }
 
-    const handleClientsJoin = () => {
+    const handleClientsJoin = (_inputPin: string = inputPin) => {
         clientsRange.forEach((index) => {
-            const joinUrl = createUrl(index, `/client/lobby/join/${inputPin}`, {
+            const joinUrl = createUrl(index, `/client/lobby/join/${_inputPin}`, {
                 autoJoinName: `frank${index}`,
             })
             // delayed to make the playerIndex consistent with the client index
             setTimeout(() => setClientIndexUrl(index, joinUrl), 500 * index)
         })
 
-        setTimeout(() => gotoGameWithActionsBuffer(), 5000)
+        setTimeout(() => gotoGameWithActionsBuffer(_inputPin), 5000)
     }
 
     return (
         <MagnetronMultiPage
-            hostPage={<GameFrame title={"Host"} src={hostUrl} />}
+            hostPage={
+                <FrameWrapper>
+                    <StyledIFrame ref={hostFrameRef} title={"Host"} src={hostUrl} />
+                </FrameWrapper>
+            }
             clientsPage={clientsUrl.map((url, i) => (
                 <GameFrame title={`Client${i}`} src={url} />
             ))}
