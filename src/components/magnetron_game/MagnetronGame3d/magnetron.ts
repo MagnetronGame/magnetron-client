@@ -4,6 +4,7 @@ import { Entity } from "./Entity"
 import {
     Avatar,
     MagnetPiece,
+    MagnetType,
     MagState,
     Piece,
     Vec2I,
@@ -14,6 +15,11 @@ import { Anims, Duration } from "./animation/animationHelpers"
 import cameraMovementAnim from "./cameraMovementAnim"
 import * as vec2i from "../../../utils/vec2IUtils"
 import AnimationManager from "./animation/AnimationManager"
+import boardSparksAnimation from "./boardSparksAnimation"
+import magnetAffectAnim from "./magnetAffectAnim"
+import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
+import ShakeAnimation from "./ShakeAnimation"
+import sceneBackgroundFadeAnim from "./sceneBackgroundFadeAnim"
 
 export class Magnetron {
     started = false
@@ -60,7 +66,7 @@ export class Magnetron {
         this.renderer = renderer
 
         this.animManager = new AnimationManager()
-        this.animManager.logging = true
+        this.animManager.logging = false
         this.addEntity(this.animManager.entity)
     }
 
@@ -103,7 +109,7 @@ export class Magnetron {
                 Anims.parallel(
                     [
                         this.board.getCreationAnimation(),
-                        cameraZoomRotateAnim(this.camera, 2, 0.6, -Math.PI / 2, 1, 5),
+                        cameraZoomRotateAnim(this.camera, 5, 0.6, -Math.PI / 2, 1, 7),
                     ],
                     "Create board and initial camera motion",
                 ),
@@ -157,6 +163,46 @@ export class Magnetron {
         } else return []
     }
 
+    private getMagnetNeighbours(boardPos: Vec2I): [MagnetPiece, Vec2I][] {
+        const neighbourPositions = [
+            { x: -1, y: 0 },
+            { x: 0, y: -1 },
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+        ]
+            .map((relNPos) => vec2i.add(boardPos, relNPos))
+            .filter((bPos) => this.board!.isPositionInsideBoard(bPos))
+        const nMagnetsWithPos = neighbourPositions
+            .map((bpos) => [this.board!.getPieceOfType(bpos, "MagnetPiece"), bpos])
+            .filter(([magnet, _]) => !!magnet) as [MagnetPiece, Vec2I][]
+
+        return nMagnetsWithPos
+    }
+
+    private createNeighbourMagnetsEffect(boardPos: Vec2I, avatar: Avatar): Anim {
+        const anims = this.getMagnetNeighbours(boardPos)
+            .filter(
+                ([piece, _]) =>
+                    piece.magnetType === MagnetType.POSITIVE ||
+                    piece.magnetType === MagnetType.NEGATIVE,
+            )
+            .map(([piece, bpos]) => {
+                const color = MagnetColorByType[piece.magnetType].lighter
+                const towardsAvatar = avatar.magnetType !== piece.magnetType
+                const aboveGroundVec = new THREE.Vector3(0, 0.05, 0)
+                return magnetAffectAnim(
+                    this.scene,
+                    this.board!.boardPosToWorldPos(boardPos).add(aboveGroundVec),
+                    this.board!.boardPosToWorldPos(bpos).add(aboveGroundVec),
+                    towardsAvatar,
+                    this.board!.staticBoard.cellSize.x,
+                    this.board!.staticBoard.cellSize.y,
+                    color,
+                )
+            })
+        return Anims.parallel(anims)
+    }
+
     private setState(state: MagState): ChainedAnims {
         const piecesChangeAnims: ChainedAnims = Anims.chained(
             state.board.flatMap((boardRow, y) =>
@@ -181,16 +227,16 @@ export class Magnetron {
             "Change pieces",
         )
 
-        const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType("Avatar") as [
-            Avatar,
-            Vec2I,
-        ][]
+        const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType<Avatar>("Avatar").sort(
+            ([a1], [a2]) => a1.index - a2.index,
+        )
+
         const boardAvatarPieces = boardAvatarPiecesWithPos.map(([_a, _]) => _a)
 
         const anyAvatarEquals = (a1: Avatar, others: Avatar[]) =>
             others.some((_a) => this.pieceEquals(_a, a1))
 
-        const nonExistingAvatarPiecesWithPos = state.avatars
+        const newAvatarPiecesWithPos = state.avatars
             .map<[Avatar, Vec2I]>((_avatar, index) => [_avatar, state.avatarsBoardPosition[index]])
             .filter(([_avatar, _]) => !anyAvatarEquals(_avatar, boardAvatarPieces))
 
@@ -200,18 +246,13 @@ export class Magnetron {
 
         const existingAvatarPiecesWithNewOldPos = existingAvatarPiecesWithOldPos.map<
             [Avatar, Vec2I, Vec2I]
-        >(([existingAvatar, oldPos]) => {
-            const newAvatarIndex = state.avatars.findIndex((newAvatar) =>
-                this.pieceEquals(existingAvatar, newAvatar),
-            )
-            if (newAvatarIndex !== -1) {
-                const newPos = state.avatarsBoardPosition[newAvatarIndex]
-                return [existingAvatar, newPos, oldPos]
-            } else throw Error(`Could not find avatar: ${existingAvatar.index}`)
+        >(([existingAvatar, oldPos], avatarIndex) => {
+            const newPos = state.avatarsBoardPosition[avatarIndex]
+            return [existingAvatar, newPos, oldPos]
         })
 
-        const createAvatarsAnimations: ChainedAnims = Anims.chained(
-            nonExistingAvatarPiecesWithPos.map(([avatar, boardPos]) =>
+        const newAvatarsAnimations: ChainedAnims = Anims.chained(
+            newAvatarPiecesWithPos.map(([avatar, boardPos]) =>
                 this.board!.addPiece(avatar, boardPos),
             ),
             "Create avatars",
@@ -223,6 +264,7 @@ export class Magnetron {
                 .map(([avatar, newBoardPos, oldBoardPos]) =>
                     Anims.chained([
                         { duration: 0.5 },
+                        this.createNeighbourMagnetsEffect(oldBoardPos, avatar),
                         this.board!.movePiece(avatar, oldBoardPos, newBoardPos),
                         { duration: 0.5 },
                     ]),
@@ -231,7 +273,7 @@ export class Magnetron {
         )
 
         const stateUpdateAnims = Anims.chained(
-            [createAvatarsAnimations, moveAvatarsAnims, piecesChangeAnims].filter(
+            [newAvatarsAnimations, moveAvatarsAnims, piecesChangeAnims].filter(
                 (anim) => anim.anims.length !== 0,
             ),
             "State update anims",
@@ -241,11 +283,28 @@ export class Magnetron {
 
     public updateState(state: MagState) {
         if (state.didSimulate) {
-            const simAnims = Anims.chained(
-                state.simulationStates.map((simState) => this.setState(simState)),
-                "simulation",
+            const simAnims = state.simulationStates.map((simState) => this.setState(simState))
+            const [lastPieceStateAnim, ...restSimAnims] = simAnims
+            const standardSceneBackground = (this.scene.background as THREE.Color).clone()
+            const simulateSceneBackground = new THREE.Color("#070b40")
+            this.animManager.add(
+                Anims.chained(
+                    [
+                        { duration: 2 },
+                        sceneBackgroundFadeAnim(this.scene, simulateSceneBackground, 0.5),
+                        Anims.parallel([
+                            new ShakeAnimation(this.board!.visBoardContainer, 0.4, 0.1),
+                            boardSparksAnimation(this.scene, this.board!, standardSceneBackground),
+                        ]),
+                        lastPieceStateAnim,
+                        { duration: 5 },
+                        Anims.chained(restSimAnims),
+                        { duration: 2 },
+                        sceneBackgroundFadeAnim(this.scene, standardSceneBackground, 0.2),
+                    ],
+                    "",
+                ),
             )
-            this.animManager.add(Anims.chained([{ duration: 3 }, simAnims, { duration: 3 }], ""))
         }
         this.animManager.add(this.setState(state))
     }

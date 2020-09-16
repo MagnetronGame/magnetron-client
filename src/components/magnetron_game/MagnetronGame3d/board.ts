@@ -7,9 +7,10 @@ import { Anim, SingleAnim } from "./animation/animationTypes"
 import boardGroupAnim from "./boardGroupAnim"
 import { Anims } from "./animation/animationHelpers"
 import ShakeAnimation from "./ShakeAnimation"
-import ParticleSystemAnim from "./particleSystemAnim"
 import opacityAnim from "./opacityAnim"
 import * as vec2i from "../../../utils/vec2IUtils"
+import ParticleSystemAnim from "./particleSystem/particleSystemAnim"
+import { UP_VEC } from "./particleSystem/particleSystemUtils"
 
 export class Board {
     public readonly staticBoard: StaticBoard
@@ -47,18 +48,44 @@ export class Board {
                     new ParticleSystemAnim(
                         this.visBoardContainer.parent || this.visBoardContainer,
                         1,
-                        new THREE.Vector3(),
-                        "#7ab8ff",
-                        0.05,
-                        0.1,
+                        {
+                            formation: {
+                                formation: "sphere",
+                                radiusInner: 0,
+                                radiusOuter: (this.staticBoard.size.x / 2) * 3,
+                            },
+                            centerPosition: new THREE.Vector3(),
+                            color: "#7ab8ff",
+                            particleSizeMin: 0.05,
+                            distanceSpeedFactor: 3,
+                            particlePositionDistortMax: 0.5,
+                            particleCount: 1800,
+                        },
                     ),
                     new ParticleSystemAnim(
                         this.visBoardContainer.parent || this.visBoardContainer,
                         1.3,
-                        new THREE.Vector3(),
-                        "#ffffcc",
-                        0.01,
-                        -0.004,
+                        {
+                            formation: {
+                                formation: "rectangle",
+                                widthInner: 0,
+                                widthOuter: this.staticBoard.size.x,
+                                heightInner: 0,
+                                heightOuter: this.staticBoard.size.y,
+                            },
+                            centerPosition: new THREE.Vector3(
+                                this.staticBoard.center.x,
+                                0.1,
+                                this.staticBoard.center.y,
+                            ),
+                            direction: UP_VEC,
+                            color: "#ffffcc",
+                            particleSizeMin: 0.01,
+                            distanceSpeedFactor: -0.24,
+                            particlePositionDistortMax: 0.1,
+                            particleSpeedMax: 0.5,
+                            particleCount: 500,
+                        },
                     ),
                 ],
                 "board implode",
@@ -128,6 +155,18 @@ export class Board {
         return moveAnim
     }
 
+    public isPositionInsideBoard(boardPos: Vec2I): boolean {
+        return (
+            boardPos.x >= 0 &&
+            boardPos.x < this.staticBoard.cellCount.x &&
+            boardPos.y >= 0 &&
+            boardPos.y < this.staticBoard.cellCount.y
+        )
+    }
+
+    public getPieceOfType(boardPos: Vec2I, type: string): Piece | null {
+        return this.getPieces(boardPos).find((p) => p.type === type) || null
+    }
     public getPieces(boardPos: Vec2I): Piece[] {
         return this.getVisPieces(boardPos).map((visPiece) => visPiece.pieceData)
     }
@@ -137,7 +176,7 @@ export class Board {
         return pieces.length === 1 && this.pieceEqualsFunc(pieces[0], piece)
     }
 
-    public getPiecesWithPosOfType(type: string): [Piece, Vec2I][] {
+    public getPiecesWithPosOfType<T extends Piece>(type: string): [T, Vec2I][] {
         const piecesWithPos: [VisPiece, Vec2I][] = this.pieces.flatMap((pieceCol, x) =>
             pieceCol.flatMap((visPieces, y) =>
                 visPieces.map<[VisPiece, Vec2I]>((visPiece) => [visPiece, { x, y }]),
@@ -145,7 +184,7 @@ export class Board {
         )
         return piecesWithPos
             .filter(([visPiece, _]) => visPiece.type === type)
-            .map(([visPiece, pos]) => [visPiece.pieceData, pos])
+            .map(([visPiece, pos]) => [visPiece.pieceData as T, pos])
     }
 
     private attachVisPiece(visPiece: VisPiece, boardPos: Vec2I) {
