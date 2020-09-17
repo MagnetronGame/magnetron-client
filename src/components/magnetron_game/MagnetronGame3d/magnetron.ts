@@ -46,6 +46,8 @@ export class Magnetron {
         | ((avatar: Avatar, avatarPositions: Vec2I) => void)
         | undefined = undefined
 
+    public onGameEnd: (() => void) | undefined = undefined
+
     constructor(rootElem: HTMLElement) {
         this.rootElement = rootElem
         this.elementWidth = this.rootElement.clientWidth
@@ -355,7 +357,15 @@ export class Magnetron {
                 ),
             )
         }
+
         this.animManager.add(this.setState(state))
+
+        if (state.isTerminal) {
+            this.animManager.add({
+                duration: 0,
+                start: () => this.onGameEnd && this.onGameEnd(),
+            })
+        }
     }
 
     private start(state: MagState) {

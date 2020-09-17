@@ -7,6 +7,7 @@ import {
 } from "../../../services/magnetronServerService/magnetronGameTypes"
 import styled from "styled-components"
 import { addOrReplace, replace } from "../../../utils/arrayUtils"
+import { MagnetColorByType } from "../../../MagnetronTheme"
 
 type Props = {
     className?: string
@@ -16,7 +17,8 @@ type Props = {
     onMagAction?: (action: MagAction) => void
 }
 
-const GameOverlay = styled.div`
+const GameOverlay = styled.div<{ color?: string }>`
+    background-color: ${(props) => props.color || "none"};
     position: absolute;
     top: 0;
     left: 0;
@@ -33,6 +35,17 @@ const PlayerAvatarField = styled.div<{ x: number; y: number }>`
     font-size: 16px;
 `
 
+const WinnerField = styled.div<{ color: string }>`
+    width: 100%;
+    height: 100%;
+    color: ${(props) => props.color};
+    font-family: ${(props) => props.theme.fonts.types.cool};
+    font-size: ${(props) => props.theme.fonts.sizes.large};
+    display: flex;
+    justify-content: center;
+    align-items: start;
+`
+
 const MagnetronGame3d: React.FC<Props> = ({
     className,
     style,
@@ -43,6 +56,7 @@ const MagnetronGame3d: React.FC<Props> = ({
     const magnetron = useRef<Magnetron>(null)
     const [initialState, setInitialState] = useState<boolean>(true)
     const [avatarsScreenPosition, setAvatarsScreenPosition] = useState<(Vec2I | null)[]>([])
+    const [gameTerminal, setGameTerminal] = useState<boolean>(false)
 
     useEffect(() => {
         if (rootNode.current) {
@@ -52,6 +66,7 @@ const MagnetronGame3d: React.FC<Props> = ({
                 setAvatarsScreenPosition((oldPositions) =>
                     addOrReplace(oldPositions, avatar.index, avatarPosition),
                 )
+            magnetron.current.onGameEnd = () => setGameTerminal(true)
         }
     }, [rootNode])
 
@@ -76,6 +91,17 @@ const MagnetronGame3d: React.FC<Props> = ({
                                 {index}
                             </PlayerAvatarField>
                         ),
+                )}
+                {gameTerminal && (
+                    <WinnerField
+                        color={
+                            MagnetColorByType[
+                                state.avatars[state.avatarIndicesWon[0] || 0].magnetType
+                            ].standard
+                        }
+                    >
+                        {state.avatarIndicesWon.map((i) => `Player ${i}`).join(" and ")} won!
+                    </WinnerField>
                 )}
             </GameOverlay>
             <div ref={rootNode} style={{ width: "100%", height: "100%" }}></div>
