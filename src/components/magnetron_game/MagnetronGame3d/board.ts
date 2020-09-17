@@ -21,6 +21,10 @@ export class Board {
     readonly pieces: VisPiece[][][]
     readonly pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean
 
+    public onVisPieceChange:
+        | ((type: "add" | "remove" | "move", visPiece: VisPiece) => void)
+        | undefined = undefined
+
     constructor(state: MagState, pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean) {
         this.staticBoard = createStaticBoard(state)
         this.visBoardPlate = boardVisObject(this.staticBoard)
@@ -103,6 +107,7 @@ export class Board {
             duration: instant ? 0 : 0.5,
             start: () => {
                 this.addVisPieceGraphics(visPiece, boardPos)
+                this.onVisPieceChange && this.onVisPieceChange("add", visPiece)
             },
         }
         return anim
@@ -117,7 +122,10 @@ export class Board {
         const anims: Anim[] = visPieces.map((visPiece) => ({
             name: `Remove piece at ${vec2i.toString(boardPos)}: ${visPiece.pieceData.type}`,
             duration: instant ? 0 : 0.1,
-            start: () => this.removeVisPieceGraphics(visPiece),
+            start: () => {
+                this.removeVisPieceGraphics(visPiece)
+                this.onVisPieceChange && this.onVisPieceChange("remove", visPiece)
+            },
         }))
         return Anims.chained(anims)
     }
@@ -145,10 +153,10 @@ export class Board {
                     .clone()
                     .multiplyScalar(1 - durationRatio)
                     .add(toPos.clone().multiplyScalar(durationRatio))
-                visPiece.pieceObject.position.copy(intermediatePos)
+                this.moveVisPiece(visPiece, intermediatePos)
             },
             end: () => {
-                visPiece.pieceObject.position.copy(toPos)
+                this.moveVisPiece(visPiece, toPos)
             },
         }
 
@@ -187,6 +195,24 @@ export class Board {
             .map(([visPiece, pos]) => [visPiece.pieceData as T, pos])
     }
 
+    public getPiecesCurrentWorldPosOfType<T extends Piece>(type: string): [T, THREE.Vector3][] {
+        const allVisPieces = this.pieces.flat(3) as VisPiece[]
+
+        const visPiecesWithCurrentWorldPos = allVisPieces
+            .filter((visPiece) => visPiece.type === type)
+            .map((visPiece) => [visPiece.pieceData as T, visPiece.pieceObject.position]) as [
+            T,
+            THREE.Vector3,
+        ][]
+        return visPiecesWithCurrentWorldPos
+    }
+
+    private moveVisPiece(visPiece: VisPiece, position: THREE.Vector3) {
+        // calls listeners
+        visPiece.pieceObject.position.copy(position)
+        this.onVisPieceChange && this.onVisPieceChange("move", visPiece)
+    }
+
     private attachVisPiece(visPiece: VisPiece, boardPos: Vec2I) {
         this.setVisPieces(boardPos, [...this.getVisPieces(boardPos), visPiece])
     }
@@ -210,6 +236,7 @@ export class Board {
 
     private addVisPieceGraphics(visPiece: VisPiece, boardPos: Vec2I) {
         const pieceObject = visPiece.pieceObject
+        pieceObject.addEventListener("change", (e) => console.log("vis object change", e))
         const pos = this.boardPosToWorldPos(boardPos)
         pieceObject.position.copy(pos)
         this.visPiecesContainer.add(visPiece.pieceObject)

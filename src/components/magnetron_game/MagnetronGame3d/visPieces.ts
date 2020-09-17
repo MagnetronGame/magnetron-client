@@ -31,9 +31,11 @@ export const createVisPiece = (piece: Piece, staticBoard: StaticBoard): VisPiece
     }
 }
 
+export const VisAvatarHeight = 0.2
+
 export const createVisAvatarPiece = (avatarPiece: Avatar, staticBoard: StaticBoard): VisPiece => {
     const radius = Math.min(staticBoard.cellSize.x, staticBoard.cellSize.y) / 4
-    const height = 0.2
+    const height = VisAvatarHeight
 
     const geom = new THREE.CylinderGeometry(radius * 0.8, radius, height, 24, 1)
     geom.applyMatrix4(new THREE.Matrix4().makeTranslation(0, height / 2, 0))

@@ -21,6 +21,7 @@ import { MagnetColorByType } from "../../../MagnetronTheme"
 import ShakeAnimation from "./ShakeAnimation"
 import sceneBackgroundFadeAnim from "./sceneBackgroundFadeAnim"
 import { AudioManager, MagAudio } from "./AudioManager"
+import { VisAvatarHeight } from "./visPieces"
 
 export class Magnetron {
     started = false
@@ -40,6 +41,10 @@ export class Magnetron {
     private animManager: AnimationManager
 
     private prevTimeMillis = 0
+
+    public onAvatarsScreenPositionChange:
+        | ((avatar: Avatar, avatarPositions: Vec2I) => void)
+        | undefined = undefined
 
     constructor(rootElem: HTMLElement) {
         this.rootElement = rootElem
@@ -112,19 +117,30 @@ export class Magnetron {
         this.board = new Board(state, this.pieceEquals)
         this.scene.add(this.board.visBoardContainer)
 
+        this.board.onVisPieceChange = (type, visPiece) => {
+            if (visPiece.type === "Avatar") {
+                const avatar = visPiece.pieceData as Avatar
+                const avatarIndex = avatar.index
+                const screenPosition = this.getAvatarsScreenPosition()[avatarIndex]
+                this.onAvatarsScreenPositionChange &&
+                    this.onAvatarsScreenPositionChange(avatar, screenPosition)
+            }
+        }
+
         this.animManager.add(
             Anims.chained([
                 Anims.parallel(
                     [
+                        {
+                            duration: 0,
+                            start: () =>
+                                this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true),
+                        },
                         this.board.getCreationAnimation(),
                         cameraZoomRotateAnim(this.camera, 5, 0.6, -Math.PI / 2, 1, 7),
                     ],
                     "Create board and initial camera motion",
                 ),
-                {
-                    duration: 0,
-                    start: () => this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true),
-                },
                 cameraMovementAnim(this.camera),
             ]),
         )
@@ -158,20 +174,23 @@ export class Magnetron {
         // obj.updateMatrixWorld()
         const _position = position.clone()
         _position.project(camera)
+        const width = this.renderer.domElement.width
+        const height = this.renderer.domElement.height
         return {
-            x: _position.x,
-            y: _position.y,
+            x: ((_position.x + 1) * width) / 2,
+            y: (-(_position.y - 1) * height) / 2,
         }
     }
 
-    public getAvatarsScreenPosition = () => {
+    public getAvatarsScreenPosition = (): Vec2I[] => {
         if (this.board) {
             return this.board
-                .getPiecesWithPosOfType("Avatar")
-                .sort(([a1], [a2]) => (a1 as Avatar).index - (a2 as Avatar).index)
-                .map(([_, boardPos]) => boardPos)
-                .map((boardPos) => this.board!.boardPosToWorldPos(boardPos))
-                .map((pos) => this.worldToScreenPos(pos, this.camera))
+                .getPiecesCurrentWorldPosOfType<Avatar>("Avatar")
+                .sort(([a1], [a2]) => a1.index - a2.index)
+                .map(([, worldPos]) =>
+                    worldPos.clone().add(new THREE.Vector3(0, VisAvatarHeight, 0)),
+                )
+                .map((worldPos) => this.worldToScreenPos(worldPos, this.camera))
         } else return []
     }
 
@@ -298,7 +317,7 @@ export class Magnetron {
             const simAnims = state.simulationStates.map((simState) => this.setState(simState))
             const [lastPieceStateAnim, ...restSimAnims] = simAnims
             const standardSceneBackground = (this.scene.background as THREE.Color).clone()
-            const simulateSceneBackground = new THREE.Color("#070b40")
+            const simulateSceneBackground = new THREE.Color("#011333") // new THREE.Color("#070b40")
             this.animManager.add(
                 Anims.chained(
                     [
