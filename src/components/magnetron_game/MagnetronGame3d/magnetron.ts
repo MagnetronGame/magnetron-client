@@ -17,9 +17,10 @@ import * as vec2i from "../../../utils/vec2IUtils"
 import AnimationManager from "./animation/AnimationManager"
 import boardSparksAnimation from "./boardSparksAnimation"
 import magnetAffectAnim from "./magnetAffectAnim"
-import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
+import { MagnetColorByType } from "../../../MagnetronTheme"
 import ShakeAnimation from "./ShakeAnimation"
 import sceneBackgroundFadeAnim from "./sceneBackgroundFadeAnim"
+import { AudioManager, MagAudio } from "./AudioManager"
 
 export class Magnetron {
     started = false
@@ -30,8 +31,10 @@ export class Magnetron {
     camera: THREE.PerspectiveCamera
     scene: THREE.Scene
     renderer: THREE.Renderer
+    audioListener: THREE.AudioListener
 
     board: Board | null = null
+    audioManager: AudioManager
 
     private entities: Entity[] = []
     private animManager: AnimationManager
@@ -50,6 +53,11 @@ export class Magnetron {
             10,
         )
         this.camera = camera
+
+        this.audioListener = new THREE.AudioListener()
+        camera.add(this.audioListener)
+
+        this.audioManager = new AudioManager(this.audioListener)
 
         const scene = new THREE.Scene()
         scene.background = new THREE.Color(0xbceef5)
@@ -113,6 +121,10 @@ export class Magnetron {
                     ],
                     "Create board and initial camera motion",
                 ),
+                {
+                    duration: 0,
+                    start: () => this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true),
+                },
                 cameraMovementAnim(this.camera),
             ]),
         )
@@ -290,6 +302,17 @@ export class Magnetron {
             this.animManager.add(
                 Anims.chained(
                     [
+                        {
+                            duration: 0,
+                            start: () => {
+                                this.audioManager.stopAudio(MagAudio.BACKGROUND)
+                                this.audioManager.playAudio(
+                                    MagAudio.BACKGROUND_SIMULATION,
+                                    0.8,
+                                    true,
+                                )
+                            },
+                        },
                         { duration: 2 },
                         sceneBackgroundFadeAnim(this.scene, simulateSceneBackground, 0.5),
                         Anims.parallel([
@@ -301,6 +324,13 @@ export class Magnetron {
                         Anims.chained(restSimAnims),
                         { duration: 2 },
                         sceneBackgroundFadeAnim(this.scene, standardSceneBackground, 0.2),
+                        {
+                            duration: 0,
+                            start: () => {
+                                this.audioManager.stopAudio(MagAudio.BACKGROUND_SIMULATION)
+                                this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true)
+                            },
+                        },
                     ],
                     "",
                 ),

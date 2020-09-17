@@ -145,7 +145,12 @@ const MagnetronTestAll = () => {
         <MagnetronMultiPage
             hostPage={
                 <FrameWrapper>
-                    <StyledIFrame ref={hostFrameRef} title={"Host"} src={hostUrl} />
+                    <StyledIFrame
+                        ref={hostFrameRef}
+                        title={"Host"}
+                        src={hostUrl}
+                        allow={"autoplay"}
+                    />
                 </FrameWrapper>
             }
             clientsPage={clientsUrl.map((url, i) => (
