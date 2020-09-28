@@ -19,22 +19,6 @@ const apiPrefix = "/api"
 export const baseUrl = () => apiAddress
 export const apiBaseUrl = () => `${apiAddress}${apiPrefix}`
 
-type CreateGameResponse = {
-    pin: string
-    accessToken: string
-}
-
-type JoinGameResponse = {
-    pin: string
-    accessToken: string
-    playerIndex: number
-}
-
-type Lobby = {
-    playersCount: number
-    players: string[]
-}
-
 export const createLobby = (): Promise<CreateGameResponse> =>
     fetch(`${apiBaseUrl()}/createLobby`, {
         method: "POST",
