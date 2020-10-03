@@ -3,8 +3,8 @@ import MagnetronMultiPage from "./MagnetronMultiPage"
 import { range } from "../../utils/arrayUtils"
 import styled from "styled-components"
 import { parseQueryParams, stringifyQueryParams } from "../../utils/queryParser"
-import { MagAction, MagState } from "../../services/magnetronServerService/magnetronGameTypes"
 import { useLocation } from "react-router-dom"
+import { MagAction } from "../../services/magnetronServerService/types/gameTypes/actionTypes"
 
 const FrameWrapper = styled.div`
     width: 100%;

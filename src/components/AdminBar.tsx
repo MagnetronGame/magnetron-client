@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import styled from "styled-components"
-import { ApiAddressesType, setApiAddress } from "../services/magnetronServerService/gameServerApi"
 import ButtonMagnet from "./Button"
+import { ApiAddressesType, setApiAddress } from "../services/magnetronServerService/api/url"
 
 type Props = {}
 

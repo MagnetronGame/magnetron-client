@@ -1,6 +1,6 @@
 import { MagState } from "./gameTypes/stateTypes"
 
-export type SessionId = string
+export type GameId = string
 export type UserId = string
 
 export type PlayerBot = {
@@ -18,7 +18,7 @@ export type PlayerClient = {
 export type Player = PlayerClient | PlayerBot
 
 export type GameStateView = {
-    sessionId: SessionId
+    sessionId: GameId
     players: Player[]
     viewPlayerIndex: number
     currentState: MagState
@@ -37,5 +37,7 @@ export type JoinLobbyResponse = {
 
 export type LobbySession = {
     playersCount: number
-    players: string[]
+    players: Player[]
+    isReady: boolean
+    gameId?: GameId
 }

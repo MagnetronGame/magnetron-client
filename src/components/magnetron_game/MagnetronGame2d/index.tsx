@@ -1,11 +1,4 @@
 import React, { useEffect, useState } from "react"
-import {
-    MagAction,
-    MagnetPiece,
-    MagState,
-    Piece,
-    Vec2I,
-} from "../../../services/magnetronServerService/magnetronGameTypes"
 import * as vec2i from "../../../utils/vec2IUtils"
 import {
     BoardCell,
@@ -16,6 +9,12 @@ import {
     StyledPieceComp,
     Wrapper,
 } from "./elements"
+import {
+    MagState,
+    Vec2I,
+} from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
+import { MagAction } from "../../../services/magnetronServerService/types/gameTypes/actionTypes"
+import { Piece } from "../../../services/magnetronServerService/types/gameTypes/pieceTypes"
 
 type Props = {
     className?: string
@@ -38,14 +37,12 @@ const MagnetronGame2d: React.FC<Props> = ({
 
     const boardWithAvatars = magState.board.map((boardRow, y) =>
         boardRow.map((boardPiece, x) => {
-            const avatarIndex = magState.avatarsBoardPosition.findIndex((avatarBoardPos) =>
-                vec2i.equals(avatarBoardPos, { x, y }),
-            )
-            return avatarIndex !== -1 ? magState.avatars[avatarIndex] : boardPiece
+            const avatar = magState.avatars.find((a) => vec2i.equals(a.position, { x, y }))
+            return avatar?.piece || boardPiece
         }),
     )
 
-    const hand = magState.avatars[playerIndex].hand
+    const hand = magState.avatars[playerIndex].avatarData.hand
     const handPieceWidthRatio = 1 / 3 // start hand should be included in static state
 
     useEffect(() => {
@@ -108,26 +105,23 @@ const MagnetronGame2d: React.FC<Props> = ({
                 )}
             </BoardGrid>
             <HandContainer>
-                {hand.map((handMagType, handIndex) => {
-                    const handMagnetPiece = { type: "MagnetPiece", magnetType: handMagType }
-                    return (
-                        <HandPieceWrapper
-                            key={handIndex + JSON.stringify(handMagnetPiece)}
-                            handPieceWidthRatio={handPieceWidthRatio}
-                            onClick={() => handleHandPieceClick(handIndex)}
-                        >
-                            <StyledPieceComp
-                                piece={handMagnetPiece}
-                                active={
-                                    !!chosenCell &&
-                                    possibleMagActions.some(
-                                        (action) => action.handPieceIndex === handIndex,
-                                    )
-                                }
-                            />
-                        </HandPieceWrapper>
-                    )
-                })}
+                {hand.map((handPiece, handIndex) => (
+                    <HandPieceWrapper
+                        key={handPiece.id}
+                        handPieceWidthRatio={handPieceWidthRatio}
+                        onClick={() => handleHandPieceClick(handIndex)}
+                    >
+                        <StyledPieceComp
+                            piece={handPiece}
+                            active={
+                                !!chosenCell &&
+                                possibleMagActions.some(
+                                    (action) => action.handPieceIndex === handIndex,
+                                )
+                            }
+                        />
+                    </HandPieceWrapper>
+                ))}
             </HandContainer>
         </Wrapper>
     )

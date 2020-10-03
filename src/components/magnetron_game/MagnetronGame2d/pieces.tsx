@@ -1,60 +1,12 @@
 import React from "react"
-import {
-    Avatar,
-    MagnetPiece,
-    MagnetType,
-    Piece,
-} from "../../../services/magnetronServerService/magnetronGameTypes"
 import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
 import styled from "styled-components"
-
-const MagnetPiecePosComp: React.FC<{
-    className?: string
-    style?: React.CSSProperties
-}> = ({ className, style }) =>
-    // prettier-ignore
-    <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg"
-         style={style} className={className}
-    >
-        <rect x="3" y="3" width="122" height="122" fill={MagnetronTheme.magnet.baseColorInner} stroke={MagnetronTheme.magnet.baseColorOuter} strokeWidth="6"/>
-        <path d="M64 22L64 64.5L64 107" stroke="#FF3C2D" strokeWidth="10"/>
-        <path d="M22 64L64.5 64L107 64" stroke="#FF3C2D" strokeWidth="10"/>
-    </svg>
-
-const MagnetPieceNegComp: React.FC<{
-    className?: string
-    style?: React.CSSProperties
-}> = ({ className, style }) =>
-    // prettier-ignore
-    <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg"
-         style={style} className={className}
-    >
-        <rect x="3" y="3" width="122" height="122" fill={MagnetronTheme.magnet.baseColorInner} stroke={MagnetronTheme.magnet.baseColorOuter} strokeWidth="6"/>
-        <path d="M22 64L64.5 64L107 64" stroke="#433AFF" strokeWidth="10"/>
-    </svg>
-
-const MagnetPieceFakeComp: React.FC<{
-    className?: string
-    style?: React.CSSProperties
-}> = ({ className, style }) =>
-    // prettier-ignore
-    <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg"
-         style={style} className={className}
-    >
-        <rect x="3" y="3" width="122" height="122" fill={MagnetronTheme.magnet.baseColorInner} stroke={MagnetronTheme.magnet.baseColorOuter} strokeWidth="6"/>
-        <path d="M59 64H64H69" stroke="#3B3B3B" strokeWidth="10"/>
-    </svg>
-
-const MagnetPieceUnknownComp: React.FC<{
-    className?: string
-    style?: React.CSSProperties
-}> = ({ className, style }) =>
-    // prettier-ignore
-    <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg"
-         style={style} className={className}
-    >
-        <rect x="3" y="3" width="122" height="122" fill={MagnetronTheme.magnet.baseColorInner} stroke={MagnetronTheme.magnet.baseColorOuter} strokeWidth="6"/>
-    </svg>
+import {
+    AvatarPiece,
+    MagnetPiece,
+    Piece,
+} from "../../../services/magnetronServerService/types/gameTypes/pieceTypes"
+import { MagnetType } from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
 
 const CoinPieceComp: React.FC<{
     className?: string
@@ -71,7 +23,7 @@ const CoinPieceComp: React.FC<{
 const AvatarPieceComp: React.FC<{
     className?: string
     style?: React.CSSProperties
-    avatarPiece: Avatar
+    avatarPiece: AvatarPiece
 }> = ({ className, style, avatarPiece }) => {
     const magnetColor = MagnetColorByType[avatarPiece.magnetType]
     return (
@@ -125,27 +77,17 @@ export const PieceComp: React.FC<{
     piece: Piece
 }> = ({ className, style, piece }) => {
     switch (piece.type) {
-        case "Avatar":
+        case "AvatarPiece":
             return (
                 <>
-                    <AvatarPieceComp
-                        className={className}
-                        style={style}
-                        avatarPiece={piece as Avatar}
-                    />
-                    <AvatarPlayerMeta>{(piece as Avatar).index}</AvatarPlayerMeta>
+                    <AvatarPieceComp className={className} style={style} avatarPiece={piece} />
+                    <AvatarPlayerMeta>{piece.index}</AvatarPlayerMeta>
                 </>
             )
         case "CoinPiece":
             return <CoinPieceComp className={className} style={style} />
         case "MagnetPiece":
-            return (
-                <MagnetPieceComp
-                    className={className}
-                    style={style}
-                    magnetPiece={piece as MagnetPiece}
-                />
-            )
+            return <MagnetPieceComp className={className} style={style} magnetPiece={piece} />
         case "EmptyPiece":
         default:
             return <div className={className} style={style} />

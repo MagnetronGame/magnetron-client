@@ -1,21 +1,28 @@
 import { MagnetType } from "./stateTypes"
 
-export type Piece = {
-    type: string
+export type AvatarPiece = {
+    type: "AvatarPiece"
     id: string
-}
-
-export interface AvatarPiece extends Piece {
     index: number
     magnetType: MagnetType
 }
 
-export interface CoinPiece extends Piece {
+export type CoinPiece = {
+    type: "CoinPiece"
+    id: string
     value: number
 }
 
-export interface MagnetPiece extends Piece {
+export type MagnetPiece = {
+    type: "MagnetPiece"
+    id: string
     magnetType: MagnetType
 }
 
-export interface EmptyPiece extends Piece {}
+export type EmptyPiece = {
+    type: "EmptyPiece"
+    id: string
+}
+
+export type Piece = AvatarPiece | CoinPiece | MagnetPiece | EmptyPiece
+export type PieceType = Piece["type"]

@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import { Magnetron } from "./magnetron"
-import {
-    MagAction,
-    MagState,
-    Vec2I,
-} from "../../../services/magnetronServerService/magnetronGameTypes"
 import styled from "styled-components"
 import { addOrReplace, replace } from "../../../utils/arrayUtils"
 import { MagnetColorByType } from "../../../MagnetronTheme"
+import {
+    MagState,
+    Vec2I,
+} from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
+import { MagAction } from "../../../services/magnetronServerService/types/gameTypes/actionTypes"
 
 type Props = {
     className?: string
@@ -96,11 +96,15 @@ const MagnetronGame3d: React.FC<Props> = ({
                     <WinnerField
                         color={
                             MagnetColorByType[
-                                state.avatars[state.avatarIndicesWon[0] || 0].magnetType
+                                state.avatars[state.lifecycleState.avatarIndicesWon[0] || 0].piece
+                                    .magnetType
                             ].standard
                         }
                     >
-                        {state.avatarIndicesWon.map((i) => `Player ${i}`).join(" and ")} won!
+                        {state.lifecycleState.avatarIndicesWon
+                            .map((i) => `Player ${i}`)
+                            .join(" and ")}{" "}
+                        won!
                     </WinnerField>
                 )}
             </GameOverlay>

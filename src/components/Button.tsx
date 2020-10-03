@@ -9,6 +9,7 @@ type Props = React.PropsWithChildren<{
     className?: string
     style?: React.CSSProperties
     buttonType: ButtonType
+    disabled?: boolean
     fontSize?: FontSizes
     linkTo?: string
     onClick?: (e: React.MouseEvent) => void

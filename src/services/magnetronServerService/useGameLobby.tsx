@@ -1,104 +1,37 @@
-import { useCallback, useEffect, useState } from "react"
-import * as api from "./gameServerApi"
-import { Access } from "./helpers"
-import { useGameStarted, useLobbyGameReady, useLobbyNotification } from "./gameServerNotifications"
-import { Simulate } from "react-dom/test-utils"
-import { cookies } from "../cookies"
+import { useCallback, useState } from "react"
+import * as lobbyApi from "./api/lobby"
+import { GameId } from "./types/serverTypes"
+import { useLobbyUpdate } from "./gameServerNotifications"
 
-export type UseGameLobby = {
-    lobbyAccess: Access
+export type Return = {
     connectedPlayers: string[]
-    gameReady: boolean
-    gameStarted: boolean
+    lobbyReady: boolean
+    gameStartedId: GameId | null
+    startLobby: () => void
 }
-export default (pin: string): UseGameLobby => {
-    const accessToken = cookies.accessToken.get()
-    const [lobbyAccess, setLobbyAccess] = useState<Access>(
-        accessToken ? Access.CHECKING : Access.NOT_ACCESSIBLE,
-    )
+export default (pin: string, accessToken: string): Return => {
     const [connectedPlayers, setConnectedPlayers] = useState<string[]>([])
-    const [gameReady, setGameReady] = useState<boolean>(false)
-    const [gameStarted, setGameStarted] = useState<boolean>(false)
+    const [lobbyReady, setLobbyReady] = useState<boolean>(false)
+    const [gameStartedId, setGameStartedId] = useState<GameId | null>(null)
 
-    useEffect(() => {
-        if (accessToken) {
-            api.lobbyExists(accessToken, pin).then((access) =>
-                setLobbyAccess(access ? Access.ACCESSIBLE : Access.NOT_ACCESSIBLE),
-            )
+    useLobbyUpdate(accessToken || "", pin, (lobby) => {
+        setConnectedPlayers(lobby.players.map((p) => p.name))
+        if (lobby.isReady) {
+            setLobbyReady(true)
         }
-    }, [pin, accessToken])
-
-    const onLobbyNotify = () => {
-        if (accessToken) {
-            const aborter = new AbortController()
-            api.getLobby(accessToken, pin, aborter.signal).then((lobby) =>
-                setConnectedPlayers(lobby.players),
-            )
-            return () => aborter.abort()
+        if (lobby.gameId) {
+            setGameStartedId(lobby.gameId)
         }
-    }
+    })
 
-    useLobbyNotification(pin, onLobbyNotify, onLobbyNotify, [accessToken, pin])
-
-    useLobbyGameReady(
-        pin,
-        () => {
-            setGameReady(true)
-        },
-        () => {},
-        [],
-    )
-
-    useGameStarted(
-        pin,
-        () => {
-            setGameStarted(true)
-        },
-        () => {},
-        [],
-    )
-
-    // Check if game started before we subscribed to notifications
-    useEffect(() => {
-        let timeoutHandle: number | undefined
-        const fetchAborter = new AbortController()
-        if (accessToken) {
-            timeoutHandle = setTimeout(
-                () =>
-                    api
-                        .gameExists(accessToken, pin, fetchAborter.signal)
-                        .then((exists) => setGameStarted(exists))
-                        .catch(() => setGameStarted(false)),
-                1000,
-            )
-        }
-        return () => {
-            if (timeoutHandle !== undefined) {
-                clearTimeout(timeoutHandle)
-            }
-            fetchAborter.abort()
-        }
+    const startLobby = useCallback(() => {
+        lobbyApi.startGame(accessToken, pin).catch(() => console.log("Could not start game"))
     }, [accessToken, pin])
 
     return {
-        lobbyAccess,
         connectedPlayers,
-        gameReady,
-        gameStarted,
+        lobbyReady,
+        gameStartedId,
+        startLobby,
     }
-
-    // const startGame = useCallback(() => {
-    //     if (accessToken && pin) {
-    //         api.startGame(accessToken, pin).then((gameStarted) => gameStarted && setGameReady(true))
-    //     }
-    // }, [accessToken, pin])
-    //
-    // return {
-    //     createGame,
-    //     lobbyAccessible,
-    //     pin,
-    //     connectedPlayers,
-    //     startGame,
-    //     gameReady,
-    // }
 }

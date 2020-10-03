@@ -1,14 +1,6 @@
 import * as THREE from "three"
 import { Board } from "./board"
 import { Entity } from "./Entity"
-import {
-    Avatar,
-    MagnetPiece,
-    MagnetType,
-    MagState,
-    Piece,
-    Vec2I,
-} from "../../../services/magnetronServerService/magnetronGameTypes"
 import { Anim, ChainedAnims } from "./animation/animationTypes"
 import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
 import { Anims, Duration } from "./animation/animationHelpers"
@@ -22,6 +14,18 @@ import ShakeAnimation from "./ShakeAnimation"
 import sceneBackgroundFadeAnim from "./sceneBackgroundFadeAnim"
 import { AudioManager, MagAudio } from "./AudioManager"
 import { VisAvatarHeight } from "./visPieces"
+import {
+    AvatarPiece,
+    MagnetPiece,
+    Piece,
+} from "../../../services/magnetronServerService/types/gameTypes/pieceTypes"
+import {
+    AvatarState,
+    MagBoard,
+    MagnetType,
+    MagState,
+    Vec2I,
+} from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
 
 export class Magnetron {
     started = false
@@ -43,7 +47,7 @@ export class Magnetron {
     private prevTimeMillis = 0
 
     public onAvatarsScreenPositionChange:
-        | ((avatar: Avatar, avatarPositions: Vec2I) => void)
+        | ((avatar: AvatarPiece, avatarPositions: Vec2I) => void)
         | undefined = undefined
 
     public onGameEnd: (() => void) | undefined = undefined
@@ -116,12 +120,12 @@ export class Magnetron {
         frontLight.position.set(0, 0, 10)
         this.scene.add(frontLight)
 
-        this.board = new Board(state, this.pieceEquals)
+        this.board = new Board(state.staticState, this.pieceEquals)
         this.scene.add(this.board.visBoardContainer)
 
         this.board.onVisPieceChange = (type, visPiece) => {
-            if (visPiece.type === "Avatar") {
-                const avatar = visPiece.pieceData as Avatar
+            if (visPiece.pieceData.type === "AvatarPiece") {
+                const avatar = visPiece.pieceData
                 const avatarIndex = avatar.index
                 const screenPosition = this.getAvatarsScreenPosition()[avatarIndex]
                 this.onAvatarsScreenPositionChange &&
@@ -156,20 +160,7 @@ export class Magnetron {
     }
 
     private pieceEquals = (piece: Piece, other: Piece): boolean => {
-        if (piece.type !== other.type) {
-            return false
-        }
-        switch (piece.type) {
-            case "Avatar":
-                return (piece as Avatar).index === (other as Avatar).index
-            case "MagnetPiece":
-                return (piece as MagnetPiece).magnetType === (other as MagnetPiece).magnetType
-            case "CoinPiece":
-            case "EmptyPiece":
-                return true
-            default:
-                return false
-        }
+        return piece.type === other.type && piece.id === other.id && piece.type !== "EmptyPiece"
     }
 
     private worldToScreenPos = (position: THREE.Vector3, camera: THREE.Camera): Vec2I => {
@@ -187,7 +178,7 @@ export class Magnetron {
     public getAvatarsScreenPosition = (): Vec2I[] => {
         if (this.board) {
             return this.board
-                .getPiecesCurrentWorldPosOfType<Avatar>("Avatar")
+                .getPiecesCurrentWorldPosOfType<AvatarPiece>("AvatarPiece")
                 .sort(([a1], [a2]) => a1.index - a2.index)
                 .map(([, worldPos]) =>
                     worldPos.clone().add(new THREE.Vector3(0, VisAvatarHeight, 0)),
@@ -212,7 +203,7 @@ export class Magnetron {
         return nMagnetsWithPos
     }
 
-    private createNeighbourMagnetsEffect(boardPos: Vec2I, avatar: Avatar): Anim {
+    private createNeighbourMagnetsEffect(boardPos: Vec2I, avatar: AvatarPiece): Anim {
         const anims = this.getMagnetNeighbours(boardPos)
             .filter(
                 ([piece, _]) =>
@@ -236,9 +227,9 @@ export class Magnetron {
         return Anims.parallel(anims)
     }
 
-    private setState(state: MagState): ChainedAnims {
+    private setBoardState(board: MagBoard, avatars: AvatarState[]): ChainedAnims {
         const piecesChangeAnims: ChainedAnims = Anims.chained(
-            state.board.flatMap((boardRow, y) =>
+            board.flatMap((boardRow, y) =>
                 boardRow
                     .map<[Piece, Vec2I]>((piece, x) => [piece, { x, y }])
                     .filter(([piece, boardPos]) => !this.board!.hasOnlyPiece(boardPos, piece))
@@ -260,34 +251,36 @@ export class Magnetron {
             "Change pieces",
         )
 
-        const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType<Avatar>("Avatar").sort(
-            ([a1], [a2]) => a1.index - a2.index,
-        )
+        const boardAvatarPiecesWithPos = this.board!.getPiecesWithPosOfType<AvatarPiece>(
+            "AvatarPiece",
+        ).sort(([a1], [a2]) => a1.index - a2.index)
 
         const boardAvatarPieces = boardAvatarPiecesWithPos.map(([_a, _]) => _a)
 
-        const anyAvatarEquals = (a1: Avatar, others: Avatar[]) =>
+        const anyAvatarEquals = (a1: AvatarPiece, others: AvatarPiece[]) =>
             others.some((_a) => this.pieceEquals(_a, a1))
 
-        const newAvatarPiecesWithPos = state.avatars
-            .map<[Avatar, Vec2I]>((_avatar, index) => [_avatar, state.avatarsBoardPosition[index]])
-            .filter(([_avatar, _]) => !anyAvatarEquals(_avatar, boardAvatarPieces))
+        const newAvatars = avatars.filter(
+            (_avatar) => !anyAvatarEquals(_avatar.piece, boardAvatarPieces),
+        )
 
-        const existingAvatarPiecesWithOldPos = boardAvatarPiecesWithPos.filter(([_avatar, _]) =>
-            anyAvatarEquals(_avatar, state.avatars),
+        const existingAvatarPiecesWithOldPos = boardAvatarPiecesWithPos.filter(
+            ([_avatarPiece, _]) =>
+                anyAvatarEquals(
+                    _avatarPiece,
+                    avatars.map((a) => a.piece),
+                ),
         )
 
         const existingAvatarPiecesWithNewOldPos = existingAvatarPiecesWithOldPos.map<
-            [Avatar, Vec2I, Vec2I]
+            [AvatarPiece, Vec2I, Vec2I]
         >(([existingAvatar, oldPos], avatarIndex) => {
-            const newPos = state.avatarsBoardPosition[avatarIndex]
+            const newPos = avatars[avatarIndex].position
             return [existingAvatar, newPos, oldPos]
         })
 
         const newAvatarsAnimations: ChainedAnims = Anims.chained(
-            newAvatarPiecesWithPos.map(([avatar, boardPos]) =>
-                this.board!.addPiece(avatar, boardPos),
-            ),
+            newAvatars.map((avatar) => this.board!.addPiece(avatar.piece, avatar.position)),
             "Create avatars",
         )
 
@@ -315,8 +308,13 @@ export class Magnetron {
     }
 
     public updateState(state: MagState) {
-        if (state.didSimulate) {
-            const simAnims = state.simulationStates.map((simState) => this.setState(simState))
+        if (state.simulationStates.length > 0) {
+            const simAnims = state.simulationStates.map((simState) =>
+                this.setBoardState(
+                    simState.board,
+                    simState.simAvatars.map((sa) => sa.avatarState),
+                ),
+            )
             const [lastPieceStateAnim, ...restSimAnims] = simAnims
             const standardSceneBackground = (this.scene.background as THREE.Color).clone()
             const simulateSceneBackground = new THREE.Color("#011333") // new THREE.Color("#070b40")
@@ -358,9 +356,9 @@ export class Magnetron {
             )
         }
 
-        this.animManager.add(this.setState(state))
+        this.animManager.add(this.setBoardState(state.board, state.avatars))
 
-        if (state.isTerminal) {
+        if (state.lifecycleState.isTerminal) {
             this.animManager.add({
                 duration: 0,
                 start: () => this.onGameEnd && this.onGameEnd(),

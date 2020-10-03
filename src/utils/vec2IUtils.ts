@@ -1,4 +1,4 @@
-import { Vec2I } from "../services/magnetronServerService/magnetronGameTypes"
+import { Vec2I } from "../services/magnetronServerService/types/gameTypes/stateTypes"
 
 export type PartialVec2I = { [K in keyof Vec2I]?: Vec2I[K] }
 

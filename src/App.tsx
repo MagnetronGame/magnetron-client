@@ -36,9 +36,6 @@ function App() {
                     <MagnetronLobbyHost />
                 </Route>
 
-                <Route path={"/host/game/start/:pin"}>
-                    <MagnetronGameStart />
-                </Route>
                 <Route path={"/host/game/:pin"}>
                     <MagnetronHost />
                 </Route>

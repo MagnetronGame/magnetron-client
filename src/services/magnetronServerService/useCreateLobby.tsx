@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import * as api from "./gameServerApi"
+import * as lobbyApi from "./api/lobby"
 import { cookies } from "../cookies"
 
 type Return = {
@@ -9,7 +9,7 @@ export default (): Return => {
     const [pin, setPin] = useState<string | undefined>(undefined)
 
     useEffect(() => {
-        api.createLobby().then(({ pin: _pin, accessToken: _accessToken }) => {
+        lobbyApi.createLobby().then(({ pin: _pin, accessToken: _accessToken }) => {
             cookies.accessToken.set(_accessToken)
             setPin(_pin)
         })

@@ -1,6 +1,7 @@
 import React from "react"
 import useCreateLobby from "../../services/magnetronServerService/useCreateLobby"
 import { Redirect } from "react-router-dom"
+import MagnetronCircle from "../MagnetronCircle"
 
 const MagnetronLobbyCreate = () => {
     const { pin } = useCreateLobby()
@@ -8,7 +9,7 @@ const MagnetronLobbyCreate = () => {
     return pin ? (
         <Redirect to={`/host/lobby/${pin}`} />
     ) : (
-        <div style={{ textAlign: "center" }}>Creating game...</div>
+        <MagnetronCircle size={"small%"} rotation={"fast"} />
     )
 }
 

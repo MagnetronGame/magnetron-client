@@ -1,5 +1,5 @@
-import { MagnetType } from "./services/magnetronServerService/magnetronGameTypes"
 import { shade } from "./utils/colors"
+import { MagnetType } from "./services/magnetronServerService/types/gameTypes/stateTypes"
 
 export type FontSizes = "small" | "medium" | "large" | "largePlus"
 

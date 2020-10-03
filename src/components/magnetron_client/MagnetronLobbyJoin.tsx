@@ -7,6 +7,12 @@ import MagnetronCircle from "../MagnetronCircle"
 import styled from "styled-components"
 import Box from "../Box"
 import Button from "../Button"
+import withAccessTokenOrRedirect from "../withAccessTokenOrRedirect"
+import withExistingLobby from "../withExistingLobby"
+
+type Props = {
+    pin: string
+}
 
 const Wrapper = styled.div`
     width: 100%;
@@ -29,9 +35,7 @@ const NameInput = styled.input<{ invalid?: boolean }>`
     border-bottom: 1px solid black;
 `
 
-const MagnetronLobbyJoin = () => {
-    const routeParams = useRouteMatch<{ pin: string }>().params
-    const pin = routeParams.pin
+const MagnetronLobbyJoin: React.FC<Props> = ({ pin }) => {
     const { joinAttempted, joinLobby, lobbyAccess, playerIndex } = useJoinLobby(pin)
     const [name, setName] = useState<string>("")
     const [nameInvalid, setNameInvalid] = useState<boolean>(false)
@@ -90,4 +94,4 @@ const MagnetronLobbyJoin = () => {
     }
 }
 
-export default MagnetronLobbyJoin
+export default withExistingLobby(MagnetronLobbyJoin)

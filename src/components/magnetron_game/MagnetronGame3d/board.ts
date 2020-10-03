@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import { range } from "../../../utils/arrayUtils"
-import { MagState, Piece, Vec2I } from "../../../services/magnetronServerService/magnetronGameTypes"
 import { createVisPiece, VisPiece } from "./visPieces"
 import boardVisObject, { VisBoardPlate } from "./boardVisObject"
 import { Anim, SingleAnim } from "./animation/animationTypes"
@@ -11,6 +10,12 @@ import opacityAnim from "./opacityAnim"
 import * as vec2i from "../../../utils/vec2IUtils"
 import ParticleSystemAnim from "./particleSystem/particleSystemAnim"
 import { UP_VEC } from "./particleSystem/particleSystemUtils"
+import { Piece } from "../../../services/magnetronServerService/types/gameTypes/pieceTypes"
+import {
+    MagState,
+    Vec2I,
+} from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
+import { MagStaticState } from "../../../services/magnetronServerService/types/gameTypes/staticStateTypes"
 
 export class Board {
     public readonly staticBoard: StaticBoard
@@ -25,8 +30,10 @@ export class Board {
         | ((type: "add" | "remove" | "move", visPiece: VisPiece) => void)
         | undefined = undefined
 
-    constructor(state: MagState, pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean) {
-        this.staticBoard = createStaticBoard(state)
+    constructor(staticState: MagStaticState, pieceEqualsFunc: (p1: Piece, p2: Piece) => boolean) {
+        this.pieceEqualsFunc = pieceEqualsFunc
+
+        this.staticBoard = createStaticBoard(staticState)
         this.visBoardPlate = boardVisObject(this.staticBoard)
         this.visPiecesContainer = new THREE.Group()
         this.visBoardContainer = new THREE.Group() // this should be added to the scene
@@ -34,11 +41,9 @@ export class Board {
         this.visBoardContainer.add(this.visBoardPlate.object)
         this.visBoardContainer.add(this.visPiecesContainer)
 
-        this.pieces = range(state.staticState.boardWidth).map((x) =>
-            range(state.staticState.boardHeight).map((y) => []),
+        this.pieces = range(staticState.boardWidth).map((x) =>
+            range(staticState.boardHeight).map((y) => []),
         )
-
-        this.pieceEqualsFunc = pieceEqualsFunc
     }
 
     public getCreationAnimation(): Anim {
@@ -115,7 +120,7 @@ export class Board {
 
     public removePieces(boardPos: Vec2I, exceptType?: string, instant?: boolean): Anim {
         const visPieces = this.getVisPieces(boardPos).filter(
-            (_visPiece) => _visPiece.type !== exceptType,
+            (_visPiece) => _visPiece.pieceData.type !== exceptType,
         )
         visPieces.forEach((visPiece) => this.detachVisPiece(visPiece, boardPos))
 
@@ -191,7 +196,7 @@ export class Board {
             ),
         )
         return piecesWithPos
-            .filter(([visPiece, _]) => visPiece.type === type)
+            .filter(([visPiece, _]) => visPiece.pieceData.type === type)
             .map(([visPiece, pos]) => [visPiece.pieceData as T, pos])
     }
 
@@ -199,7 +204,7 @@ export class Board {
         const allVisPieces = this.pieces.flat(3) as VisPiece[]
 
         const visPiecesWithCurrentWorldPos = allVisPieces
-            .filter((visPiece) => visPiece.type === type)
+            .filter((visPiece) => visPiece.pieceData.type === type)
             .map((visPiece) => [visPiece.pieceData as T, visPiece.pieceObject.position]) as [
             T,
             THREE.Vector3,
@@ -277,8 +282,8 @@ export type StaticBoard = {
     edgeWidth: number
 }
 
-export const createStaticBoard = (state: MagState): StaticBoard => {
-    const cellCount = new THREE.Vector2(state.staticState.boardWidth, state.staticState.boardHeight)
+export const createStaticBoard = (staticState: MagStaticState): StaticBoard => {
+    const cellCount = new THREE.Vector2(staticState.boardWidth, staticState.boardHeight)
 
     const size = new THREE.Vector2(1, 1)
     const thickness = 0.1

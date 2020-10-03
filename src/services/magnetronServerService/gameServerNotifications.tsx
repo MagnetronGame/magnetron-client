@@ -1,12 +1,14 @@
 import React, { DependencyList, EffectCallback, useCallback, useEffect, useState } from "react"
 import { IFrame, Client, StompSubscription } from "@stomp/stompjs"
-import * as api from "./gameServerApi"
+import * as apiUrl from "./api/url"
+import * as lobbyApi from "./api/lobby"
+import * as gameApi from "./api/gameSession"
 import SockJS from "sockjs-client"
 import { frameCallbackType } from "@stomp/stompjs/esm5/types"
-import { MagState, MagStatePlayerView } from "./magnetronGameTypes"
+import { GameId, GameStateView, LobbySession } from "./types/serverTypes"
 
 let stompClient = new Client({
-    webSocketFactory: () => new SockJS(`${api.baseUrl()}/magnetron-notify`),
+    webSocketFactory: () => new SockJS(`${apiUrl.apiBaseUrl()}/notify`),
 })
 
 export const reconnect = () => {
@@ -92,54 +94,42 @@ const useServerNotifications = (
     }, [connected, path, _onNotification, _onSubscribed])
 }
 
-const createServerNotificationHookWithPin = (path: string) => (
+export const useLobbyUpdate = (
+    accessToken: string,
     pin: string,
-    onNotification: EffectCallback,
-    onSubscribed: () => void,
-    deps: DependencyList,
-) => useServerNotifications(`${path}/${pin}`, onNotification, onSubscribed, deps)
+    onLobby: (lobby: LobbySession) => void,
+) => {
+    const fetchLobby = useCallback(() => {
+        lobbyApi.getLobby(accessToken, pin).then((lobby) => onLobby(lobby))
+    }, [accessToken, pin, onLobby])
 
-export const useLobbyNotification = createServerNotificationHookWithPin("/notify/lobby")
-
-export const useLobbyGameReady = createServerNotificationHookWithPin("/notify/lobby/ready")
-
-export const useGameStarted = createServerNotificationHookWithPin("/notify/game/started")
+    useServerNotifications(
+        `/notify/lobby/${pin}`,
+        () => fetchLobby(),
+        () => fetchLobby(),
+        [],
+    )
+}
 
 export const useGameStateUpdate = (
     accessToken: string,
-    pin: string,
+    gameId: GameId,
     clientType: "HOST" | number,
-    onGameState: (state: MagState | MagStatePlayerView) => void,
+    onGameState: (stateView: GameStateView) => void,
     deps: DependencyList,
 ) => {
     const fetchGameState = useCallback(() => {
-        clientType === "HOST"
-            ? api.gameState(accessToken, pin).then((state) => onGameState(state))
-            : api
-                  .gameStatePlayerView(accessToken, pin, clientType)
-                  .then((state) => onGameState(state))
-    }, [accessToken, pin, onGameState, clientType])
+        const fetchPromise =
+            clientType === "HOST"
+                ? gameApi.gameState(accessToken, gameId)
+                : gameApi.gameStateForPlayer(accessToken, gameId, clientType)
+        fetchPromise.then((state) => onGameState(state))
+    }, [accessToken, gameId, onGameState, clientType])
+
     useServerNotifications(
-        `/notify/game/state/${pin}`,
+        `/notify/game/state/${gameId}`,
         () => fetchGameState(),
         () => fetchGameState(),
         deps,
     )
 }
-
-// useGameStateUpdate(
-//     pin,
-//     () => {
-//         if (accessToken) {
-//             if (role === "HOST") {
-//                 api.gameState(accessToken, pin).then((_state) => setState(_state))
-//             } else {
-//                 api.gameStatePlayerView(accessToken, pin, role).then((_stateView) =>
-//                     setState(_stateView.state),
-//                 )
-//             }
-//         }
-//     },
-//     [accessToken, pin, role],
-//     true,
-// )

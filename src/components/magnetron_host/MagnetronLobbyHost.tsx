@@ -1,10 +1,14 @@
 import React from "react"
 import styled from "styled-components"
 import useGameLobby from "../../services/magnetronServerService/useGameLobby"
-import { Redirect, useRouteMatch } from "react-router-dom"
-import { Access } from "../../services/magnetronServerService/helpers"
+import { Redirect } from "react-router-dom"
+import Button from "../Button"
+import withLobbyAccess from "../withLobbyAccess"
 
-type Props = {}
+type Props = {
+    accessToken: string
+    pin: string
+}
 
 const Wrapper = styled.div`
     height: 100%;
@@ -39,22 +43,18 @@ const Player = styled.li`
     font-family: inherit;
 `
 
-const MagnetronLobbyHost: React.FC<Props> = () => {
-    const { pin } = useRouteMatch<{ pin: string }>().params
+const MagnetronLobbyHost: React.FC<Props> = ({ accessToken, pin }) => {
+    const { connectedPlayers, lobbyReady, gameStartedId, startLobby } = useGameLobby(
+        pin,
+        accessToken,
+    )
 
-    const { lobbyAccess, connectedPlayers, gameReady } = useGameLobby(pin)
+    const handleLobbyStartClicked = () => {
+        startLobby()
+    }
 
-    const message =
-        lobbyAccess === Access.CHECKING
-            ? "Waiting for server..."
-            : lobbyAccess === Access.NOT_ACCESSIBLE
-            ? `Invalid pin: ${pin}`
-            : undefined
-
-    return gameReady ? (
-        <Redirect to={`/host/game/start/${pin}`} />
-    ) : message ? (
-        <div style={{ textAlign: "center" }}>{message}</div>
+    return gameStartedId ? (
+        <Redirect to={`host/game/${gameStartedId}`} />
     ) : (
         <Wrapper>
             <ShowPin id={"showPin"}>{pin}</ShowPin>
@@ -63,8 +63,15 @@ const MagnetronLobbyHost: React.FC<Props> = () => {
                     <Player key={name}>{name}</Player>
                 ))}
             </PlayersArea>
+            <Button
+                buttonType={"red"}
+                disabled={!lobbyReady}
+                onClick={() => handleLobbyStartClicked()}
+            >
+                Start!
+            </Button>
         </Wrapper>
     )
 }
 
-export default MagnetronLobbyHost
+export default withLobbyAccess(MagnetronLobbyHost)

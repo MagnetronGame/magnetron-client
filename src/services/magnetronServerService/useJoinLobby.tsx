@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import * as api from "./gameServerApi"
+import * as lobbyApi from "./api/lobby"
 import { Access } from "./helpers"
 import { cookies } from "../cookies"
 
@@ -18,7 +18,8 @@ export default (
     const joinLobby = useCallback(
         (name: string) => {
             setJoinAttempted(true)
-            api.joinLobby(pin, name)
+            lobbyApi
+                .joinLobby(pin, name)
                 .then(({ pin: _pin, accessToken: _accessToken, playerIndex: _playerIndex }) => {
                     cookies.accessToken.set(_accessToken)
                     setPlayerIndex(_playerIndex)

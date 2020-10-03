@@ -1,29 +1,29 @@
-import {
-    Avatar,
-    CoinPiece,
-    MagnetPiece,
-    MagnetType,
-    Piece,
-    StaticPieces,
-} from "../../../services/magnetronServerService/magnetronGameTypes"
 import * as THREE from "three"
 import { StaticBoard } from "./board"
 import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
+import {
+    AvatarPiece,
+    CoinPiece,
+    EmptyPiece,
+    MagnetPiece,
+    Piece,
+} from "../../../services/magnetronServerService/types/gameTypes/pieceTypes"
+import { MagnetType } from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
+import { EMPTY_PIECE } from "../../../services/magnetronServerService/gameHelpers"
 
 export type VisPiece = {
-    type: string
     pieceData: Piece
     pieceObject: THREE.Object3D
 }
 
 export const createVisPiece = (piece: Piece, staticBoard: StaticBoard): VisPiece => {
     switch (piece.type) {
-        case "Avatar":
-            return createVisAvatarPiece(piece as Avatar, staticBoard)
+        case "AvatarPiece":
+            return createVisAvatarPiece(piece, staticBoard)
         case "CoinPiece":
-            return createCoinPiece(piece as CoinPiece, staticBoard)
+            return createCoinPiece(piece, staticBoard)
         case "MagnetPiece":
-            return createMagnetPiece(piece as MagnetPiece, staticBoard)
+            return createMagnetPiece(piece, staticBoard)
         case "EmptyPiece":
             return EmptyVisPiece
         default:
@@ -33,7 +33,10 @@ export const createVisPiece = (piece: Piece, staticBoard: StaticBoard): VisPiece
 
 export const VisAvatarHeight = 0.2
 
-export const createVisAvatarPiece = (avatarPiece: Avatar, staticBoard: StaticBoard): VisPiece => {
+export const createVisAvatarPiece = (
+    avatarPiece: AvatarPiece,
+    staticBoard: StaticBoard,
+): VisPiece => {
     const radius = Math.min(staticBoard.cellSize.x, staticBoard.cellSize.y) / 4
     const height = VisAvatarHeight
 
@@ -47,7 +50,6 @@ export const createVisAvatarPiece = (avatarPiece: Avatar, staticBoard: StaticBoa
 
     const mesh = new THREE.Mesh(geom, material)
     const visPiece: VisPiece = {
-        type: avatarPiece.type,
         pieceData: avatarPiece,
         pieceObject: mesh,
     }
@@ -69,7 +71,6 @@ export const createCoinPiece = (coinPiece: CoinPiece, staticBoard: StaticBoard):
 
     const mesh = new THREE.Mesh(geom, material)
     const visPiece: VisPiece = {
-        type: coinPiece.type,
         pieceData: coinPiece,
         pieceObject: mesh,
     }
@@ -126,7 +127,6 @@ export const createMagnetPiece = (magnetPiece: MagnetPiece, staticBoard: StaticB
     }
 
     const visPiece: VisPiece = {
-        type: magnetPiece.type,
         pieceData: magnetPiece,
         pieceObject: group,
     }
@@ -136,8 +136,7 @@ export const createMagnetPiece = (magnetPiece: MagnetPiece, staticBoard: StaticB
 
 const createEmptyVisPiece = (): VisPiece => {
     const visPiece: VisPiece = {
-        type: "EmptyPiece",
-        pieceData: StaticPieces.EMPTY,
+        pieceData: EMPTY_PIECE,
         pieceObject: new THREE.Object3D(),
     }
     return visPiece

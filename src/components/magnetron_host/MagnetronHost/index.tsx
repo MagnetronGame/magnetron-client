@@ -1,42 +1,28 @@
 import React from "react"
 import MagnetronGame3d from "../../magnetron_game/MagnetronGame3d"
-import { useRouteMatch } from "react-router-dom"
 import useGameServer from "../../../services/magnetronServerService/useGameServer"
-import { Access } from "../../../services/magnetronServerService/helpers"
+import withGameAccess from "../../withGameAccess"
+import { GameId } from "../../../services/magnetronServerService/types/serverTypes"
 
-type Props = {}
-
-type RouterMatch = {
-    pin: string
+type Props = {
+    accessToken: string
+    gameId: GameId
 }
 
-const MagnetronHost: React.FC<Props> = () => {
-    const pin = useRouteMatch<RouterMatch>().params.pin
-
-    const { gameAccess, state, possibleActions } = useGameServer(pin, "HOST")
-
-    const message =
-        gameAccess === Access.CHECKING
-            ? "Two sec..."
-            : gameAccess === Access.NOT_ACCESSIBLE
-            ? "No game available"
-            : !state
-            ? "Let's go!"
-            : undefined
-
-    const gameElem = state && (
-        <MagnetronGame3d
-            magState={state}
-            possibleMagActions={possibleActions}
-            onMagAction={() => console.log("Cannot perform actions on the host")}
-        />
-    )
+const MagnetronHost: React.FC<Props> = ({ accessToken, gameId }) => {
+    const { stateView, possibleActions } = useGameServer(accessToken, gameId, "HOST")
 
     return (
         <div style={{ height: "100%" }}>
-            {message ? <div style={{ textAlign: "center" }}>{message}</div> : gameElem}
+            {stateView && (
+                <MagnetronGame3d
+                    magState={stateView.currentState}
+                    possibleMagActions={possibleActions}
+                    onMagAction={() => console.log("Cannot perform actions on the host")}
+                />
+            )}
         </div>
     )
 }
 
-export default MagnetronHost
+export default withGameAccess(MagnetronHost)
