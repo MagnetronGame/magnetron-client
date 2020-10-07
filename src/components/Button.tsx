@@ -15,13 +15,20 @@ type Props = React.PropsWithChildren<{
     onClick?: (e: React.MouseEvent) => void
 }>
 
-export const BaseButtonColored = styled.button<{ buttonType: "red" | "blue"; fontSize: FontSizes }>`
+export const BaseButtonColored = styled.button<{
+    buttonType: "red" | "blue"
+    fontSize: FontSizes
+    disabled?: boolean
+}>`
     box-sizing: border-box;
     border-radius: 20px;
-    background-color: ${(props) =>
-        props.buttonType === "red"
-            ? props.theme.magnet.positiveColor.standard
-            : props.theme.magnet.negativeColor.standard};
+    background-color: ${(props) => {
+        const color =
+            props.buttonType === "red"
+                ? props.theme.magnet.positiveColor
+                : props.theme.magnet.negativeColor
+        return props.disabled ? color.darker : color.standard
+    }};
     border: none;
     outline: none;
     text-decoration: none;

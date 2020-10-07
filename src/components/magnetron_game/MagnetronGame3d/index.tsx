@@ -59,7 +59,7 @@ const MagnetronGame3d: React.FC<Props> = ({
     const [gameTerminal, setGameTerminal] = useState<boolean>(false)
 
     useEffect(() => {
-        if (rootNode.current) {
+        if (rootNode.current && !magnetron.current) {
             // @ts-ignore
             magnetron.current = new Magnetron(rootNode.current)
             magnetron.current.onAvatarsScreenPositionChange = (avatar, avatarPosition) =>
@@ -68,7 +68,7 @@ const MagnetronGame3d: React.FC<Props> = ({
                 )
             magnetron.current.onGameEnd = () => setGameTerminal(true)
         }
-    }, [rootNode])
+    }, [rootNode, magnetron])
 
     useEffect(() => {
         if (magnetron.current && state) {

@@ -1,37 +1,36 @@
 import { useCallback, useState } from "react"
 import * as lobbyApi from "./api/lobby"
-import { GameId } from "./types/serverTypes"
+import { LobbySession } from "./types/serverTypes"
 import { useLobbyUpdate } from "./gameServerNotifications"
 
 export type Return = {
-    connectedPlayers: string[]
-    lobbyReady: boolean
-    gameStartedId: GameId | null
+    lobby: LobbySession | undefined
     startLobby: () => void
+    addBot: (botLevel: number) => void
 }
 export default (pin: string, accessToken: string): Return => {
-    const [connectedPlayers, setConnectedPlayers] = useState<string[]>([])
-    const [lobbyReady, setLobbyReady] = useState<boolean>(false)
-    const [gameStartedId, setGameStartedId] = useState<GameId | null>(null)
+    const [lobby, setLobby] = useState<LobbySession | undefined>(undefined)
 
-    useLobbyUpdate(accessToken || "", pin, (lobby) => {
-        setConnectedPlayers(lobby.players.map((p) => p.name))
-        if (lobby.isReady) {
-            setLobbyReady(true)
-        }
-        if (lobby.gameId) {
-            setGameStartedId(lobby.gameId)
-        }
+    useLobbyUpdate(accessToken, pin, (lobby) => {
+        setLobby(lobby)
     })
 
     const startLobby = useCallback(() => {
         lobbyApi.startGame(accessToken, pin).catch(() => console.log("Could not start game"))
     }, [accessToken, pin])
 
+    const addBot = useCallback(
+        (botLevel: number) => {
+            if (lobby) {
+                lobbyApi.joinLobbyBot(pin, `Bot${lobby.players.length}`, botLevel)
+            }
+        },
+        [pin, lobby],
+    )
+
     return {
-        connectedPlayers,
-        lobbyReady,
-        gameStartedId,
+        lobby,
         startLobby,
+        addBot,
     }
 }

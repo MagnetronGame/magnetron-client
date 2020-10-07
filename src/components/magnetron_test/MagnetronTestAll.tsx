@@ -82,8 +82,10 @@ const ControlPanelWrapper = styled.div`
 `
 
 const MagnetronTestAll = () => {
-    const { actions: inputPredefinedActions } = parseQueryParams(useLocation().search)
-    const [hostUrl, setHostUrl] = useState<string>(createUrl("host", "/host/lobby/create"))
+    const { actions: inputPredefinedActions, autoStart } = parseQueryParams(useLocation().search)
+    const [hostUrl, setHostUrl] = useState<string>(
+        createUrl("host", autoStart ? "/host/lobby/create" : "/"),
+    )
     const [clientsUrl, setClientsUrl] = useState<string[]>(
         clientsRange.map((index) => createUrl(index)),
     )
@@ -95,7 +97,7 @@ const MagnetronTestAll = () => {
     )
 
     useEffect(() => {
-        if (hostFrameRef.current) {
+        if (hostFrameRef.current && autoStart) {
             const frame = hostFrameRef.current
             const handle = setInterval(() => {
                 if (frame && frame.contentWindow) {
@@ -109,7 +111,7 @@ const MagnetronTestAll = () => {
                 }
             }, 500)
         }
-    }, [hostFrameRef])
+    }, [hostFrameRef, autoStart])
 
     const setClientIndexUrl = (index: number, url: string) =>
         setClientsUrl((prevUrls) => [

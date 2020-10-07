@@ -10,15 +10,17 @@ type Props = {
 }
 
 const MagnetronLobbyClient: React.FC<Props> = ({ accessToken, pin, playerIndex }) => {
-    const { gameStartedId, connectedPlayers } = useGameLobby(pin, accessToken)
+    const { lobby } = useGameLobby(pin, accessToken)
+    const gameStartedId = lobby?.gameId
+    const playerNames = lobby ? lobby.players.map((p) => p.name) : []
 
     return gameStartedId ? (
-        <Redirect to={`/client/game/${pin}/${gameStartedId}/${playerIndex}`} />
+        <Redirect to={`/client/game/${gameStartedId}/${playerIndex}`} />
     ) : (
         <div style={{ textAlign: "center" }}>
             In lobby!
             <br />
-            <span>{connectedPlayers}</span>
+            <span>{playerNames.join(" ")}</span>
         </div>
     )
 }

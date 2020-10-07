@@ -1,5 +1,6 @@
 import { CreateLobbyResponse, JoinLobbyResponse, LobbySession } from "../types/serverTypes"
 import { apiBaseUrl } from "./url"
+import { stringifyQueryParams } from "../../../utils/queryParser"
 
 const apiLobbyBaseUrl = () => `${apiBaseUrl()}/lobby`
 
@@ -36,6 +37,20 @@ export const startGame = (accessToken: string, pin: string): Promise<boolean> =>
 
 export const joinLobby = (pin: string, name: string): Promise<JoinLobbyResponse> =>
     fetch(`${apiLobbyBaseUrl()}/join/${pin}`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: name,
+    })
+        .then((res) => (res.ok ? res : Promise.reject(res)))
+        .then((res) => res.json())
+        .then((resJ) => resJ as JoinLobbyResponse)
+
+export const joinLobbyBot = (
+    pin: string,
+    name: string,
+    botLevel: number,
+): Promise<JoinLobbyResponse> =>
+    fetch(`${apiLobbyBaseUrl()}/join/${pin}${stringifyQueryParams({ type: "bot", botLevel })}`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: name,

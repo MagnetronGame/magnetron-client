@@ -36,7 +36,7 @@ function App() {
                     <MagnetronLobbyHost />
                 </Route>
 
-                <Route path={"/host/game/:pin"}>
+                <Route path={"/host/game/:gameId"}>
                     <MagnetronHost />
                 </Route>
 
@@ -46,7 +46,7 @@ function App() {
                 <Route path={"/client/lobby/:pin/:playerIndex"}>
                     <MagnetronLobbyClient />
                 </Route>
-                <Route path={"/client/game/:pin/:playerIndex"}>
+                <Route path={"/client/game/:gameId/:playerIndex"}>
                     <MagnetronGameClient />
                 </Route>
 

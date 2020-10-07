@@ -36,7 +36,8 @@ export type JoinLobbyResponse = {
 }
 
 export type LobbySession = {
-    playersCount: number
+    pin: string
+    maxPlayerCount: number
     players: Player[]
     isReady: boolean
     gameId?: GameId

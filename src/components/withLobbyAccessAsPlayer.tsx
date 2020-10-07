@@ -41,6 +41,6 @@ export default (
                     />
                 )
             case Access.NOT_ACCESSIBLE:
-                return <div style={{ textAlign: "center" }}>No lobby to join for pin: {pin} :(</div>
+                return <div style={{ textAlign: "center" }}>Lobby not accessible: {pin} :(</div>
         }
     })

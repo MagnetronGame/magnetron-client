@@ -9,6 +9,7 @@ import Box from "../Box"
 import Button from "../Button"
 import withAccessTokenOrRedirect from "../withAccessTokenOrRedirect"
 import withExistingLobby from "../withExistingLobby"
+import { cookies } from "../../services/cookies"
 
 type Props = {
     pin: string
@@ -36,7 +37,7 @@ const NameInput = styled.input<{ invalid?: boolean }>`
 `
 
 const MagnetronLobbyJoin: React.FC<Props> = ({ pin }) => {
-    const { joinAttempted, joinLobby, lobbyAccess, playerIndex } = useJoinLobby(pin)
+    const { joinLobby, lobbyAccess, accessToken, playerIndex } = useJoinLobby(pin)
     const [name, setName] = useState<string>("")
     const [nameInvalid, setNameInvalid] = useState<boolean>(false)
     const { autoJoinName } = parseQueryParams(useLocation().search)
@@ -60,8 +61,7 @@ const MagnetronLobbyJoin: React.FC<Props> = ({ pin }) => {
             setNameInvalid(true)
         }
     }
-
-    if (!joinAttempted) {
+    if (!lobbyAccess) {
         return (
             <Wrapper>
                 <Box type={"blue"} style={{ padding: "20px 0" }}>
@@ -85,7 +85,8 @@ const MagnetronLobbyJoin: React.FC<Props> = ({ pin }) => {
                 </Box>
             </Wrapper>
         )
-    } else if (lobbyAccess === Access.ACCESSIBLE && playerIndex !== undefined) {
+    } else if (lobbyAccess === Access.ACCESSIBLE && accessToken && playerIndex !== undefined) {
+        cookies.accessToken.set(accessToken)
         return <Redirect to={`/client/lobby/${pin}/${playerIndex}`} />
     } else if (lobbyAccess === Access.NOT_ACCESSIBLE) {
         return <div style={{ textAlign: "center" }}>No game to join for pin: {pin} :(</div>

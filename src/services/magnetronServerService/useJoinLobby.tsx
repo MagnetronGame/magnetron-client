@@ -1,39 +1,37 @@
 import React, { useCallback, useState } from "react"
 import * as lobbyApi from "./api/lobby"
 import { Access } from "./helpers"
-import { cookies } from "../cookies"
+import { JoinLobbyResponse } from "./types/serverTypes"
 
 export default (
     pin: string,
 ): {
-    joinAttempted: boolean
     joinLobby: (name: string) => void
-    lobbyAccess: Access
+    lobbyAccess?: Access
+    accessToken?: string
     playerIndex?: number
 } => {
-    const [joinAttempted, setJoinAttempted] = useState<boolean>(false)
-    const [lobbyAccess, setLobbyAccess] = useState<Access>(Access.CHECKING)
-    const [playerIndex, setPlayerIndex] = useState<number | undefined>(undefined)
+    const [joinLobbyData, setJoinLobbyData] = useState<JoinLobbyResponse | undefined>(undefined)
+    const [lobbyAccess, setLobbyAccess] = useState<Access | undefined>(undefined)
 
     const joinLobby = useCallback(
         (name: string) => {
-            setJoinAttempted(true)
+            setLobbyAccess(Access.CHECKING)
             lobbyApi
                 .joinLobby(pin, name)
-                .then(({ pin: _pin, accessToken: _accessToken, playerIndex: _playerIndex }) => {
-                    cookies.accessToken.set(_accessToken)
-                    setPlayerIndex(_playerIndex)
+                .then((data) => {
+                    setJoinLobbyData(data)
                     setLobbyAccess(Access.ACCESSIBLE)
                 })
-                .catch((err) => setLobbyAccess(Access.NOT_ACCESSIBLE))
+                .catch(() => setLobbyAccess(Access.NOT_ACCESSIBLE))
         },
         [pin],
     )
 
     return {
-        joinAttempted,
         joinLobby,
         lobbyAccess,
-        playerIndex,
+        accessToken: joinLobbyData?.accessToken,
+        playerIndex: joinLobbyData?.playerIndex,
     }
 }
