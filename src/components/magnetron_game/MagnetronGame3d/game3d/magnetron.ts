@@ -160,7 +160,20 @@ export class Magnetron {
     }
 
     private pieceEquals = (piece: Piece, other: Piece): boolean => {
-        return piece.type === other.type && piece.id === other.id && piece.type !== "EmptyPiece"
+        if (
+            piece.type !== other.type ||
+            piece.type === "EmptyPiece" ||
+            piece.type === "CoinPiece"
+        ) {
+            return false
+        }
+        if (piece.type === "AvatarPiece") {
+            return piece.index === (other as AvatarPiece).index
+        } else if (piece.type === "MagnetPiece") {
+            return piece.magnetType === (other as MagnetPiece).magnetType
+        }
+        return false
+        // return piece.type === other.type && piece.id === other.id && piece.type !== "EmptyPiece"
     }
 
     private worldToScreenPos = (position: THREE.Vector3, camera: THREE.Camera): Vec2I => {
