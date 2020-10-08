@@ -1,14 +1,23 @@
 import {
+    MagBoard,
     MagState,
     Vec2I,
 } from "../../../../../services/magnetronServerService/types/gameTypes/stateTypes"
-import { Piece } from "../../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
+import {
+    AvatarPiece,
+    Piece,
+} from "../../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
 import * as vec2i from "../../../../../utils/vec2IUtils"
 import { Maps } from "../../../../../utils/Maps"
 
-export type PieceWithPos = {
-    piece: Piece
+export type PieceWithPos<T = Piece> = {
+    piece: T
     pos: Vec2I
+}
+
+export type BoardState = {
+    avatarPiecesWithPos: PieceWithPos<AvatarPiece>[]
+    board: MagBoard
 }
 
 export type PieceWithChangedPos = PieceWithPos & {
@@ -22,22 +31,20 @@ export type StateDelta = {
     currentPieces: PieceWithPos[]
 }
 
-const allPiecesWithPosById = (state: MagState): Map<string, PieceWithPos> => {
-    const avatarPiecesWithPos = state.avatars.map<[string, PieceWithPos]>((a) => [
+export const allPiecesWithPosById = (state: BoardState): Map<string, PieceWithPos> => {
+    const avatarPiecesWithPos = state.avatarPiecesWithPos.map<[string, PieceWithPos]>((a) => [
         a.piece.id,
-        { piece: a.piece, pos: a.position },
+        { piece: a.piece, pos: a.pos },
     ])
     const boardPiecesWithPos = state.board.flatMap((boardRow, y) =>
-        boardRow.map<[string, PieceWithPos]>((p, x) => {
-            const pos = { x, y }
-            const id = p.type === "EmptyPiece" ? `${x}-${y}` : p.id
-            return [id, { piece: p, pos }]
-        }),
+        boardRow
+            .filter((p) => p.type !== "EmptyPiece")
+            .map<[string, PieceWithPos]>((p, x) => [p.id, { piece: p, pos: { x, y } }]),
     )
     return new Map([...avatarPiecesWithPos, ...boardPiecesWithPos])
 }
 
-const calcStateDelta = (prevState: MagState | null, newState: MagState): StateDelta => {
+export const calcStateDelta = (prevState: BoardState | null, newState: BoardState): StateDelta => {
     if (!prevState) {
         const allPiecesWithPos = [...allPiecesWithPosById(newState).values()]
         return {
@@ -74,11 +81,18 @@ const calcStateDelta = (prevState: MagState | null, newState: MagState): StateDe
     }
 }
 
-export class StateManager {
+const magStateToBoardState = (state: MagState): BoardState => ({
+    avatarPiecesWithPos: state.avatars.map((a) => ({ piece: a.piece, pos: a.position })),
+    board: state.board,
+})
+
+export class StateDeltaManager {
     prevState: MagState | null = null
 
     public stateDelta(state: MagState): StateDelta {
-        const stateDelta = calcStateDelta(this.prevState, state)
+        const prevBoardState = this.prevState && magStateToBoardState(this.prevState)
+        const newBoardState = magStateToBoardState(state)
+        const stateDelta = calcStateDelta(prevBoardState, newBoardState)
         this.prevState = state
         return stateDelta
     }
