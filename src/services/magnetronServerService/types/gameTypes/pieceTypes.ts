@@ -3,7 +3,7 @@ import { MagnetType } from "./stateTypes"
 export type AvatarPiece = {
     type: "AvatarPiece"
     id: string
-    index: number
+    ownerAvatarIndex: number
     magnetType: MagnetType
 }
 
@@ -17,6 +17,7 @@ export type MagnetPiece = {
     type: "MagnetPiece"
     id: string
     magnetType: MagnetType
+    ownerAvatarIndex: number
 }
 
 export type EmptyPiece = {
@@ -25,4 +26,3 @@ export type EmptyPiece = {
 }
 
 export type Piece = AvatarPiece | CoinPiece | MagnetPiece | EmptyPiece
-export type PieceType = Piece["type"]
