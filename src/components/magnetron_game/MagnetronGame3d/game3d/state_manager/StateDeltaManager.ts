@@ -20,7 +20,7 @@ export type BoardState = {
     board: MagBoard
 }
 
-export type PieceWithChangedPos = PieceWithPos & {
+export type PieceWithChangedPos<T = Piece> = PieceWithPos<T> & {
     prevPos: Vec2I
 }
 
@@ -81,7 +81,7 @@ export const calcStateDelta = (prevState: BoardState | null, newState: BoardStat
     }
 }
 
-const magStateToBoardState = (state: MagState): BoardState => ({
+export const magStateToBoardState = (state: MagState): BoardState => ({
     avatarPiecesWithPos: state.avatars.map((a) => ({ piece: a.piece, pos: a.position })),
     board: state.board,
 })
