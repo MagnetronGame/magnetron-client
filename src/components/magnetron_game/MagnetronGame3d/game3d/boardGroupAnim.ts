@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import { StaticBoard } from "./board"
-import { resetBoardObjectCellPositions, VisBoardPlate } from "./boardVisObject"
+import { StaticBoard } from "./board/board"
+import { resetVisBoardPlateCellPositions, VisBoardPlate } from "./board/visualObjects/visBoardPlate"
 import { range } from "../../../utils/arrayUtils"
 import { Anim } from "./animation/animationTypes"
 
@@ -41,7 +41,7 @@ export default (staticBoard: StaticBoard, boardObject: VisBoardPlate): Anim => (
         const rotation = (Math.PI / 2) * durationRatioInv
         positionCells(staticBoard, boardObject, distanceFactor, rotation)
     },
-    end: () => resetBoardObjectCellPositions(staticBoard, boardObject),
+    end: () => resetVisBoardPlateCellPositions(staticBoard, boardObject),
 })
 
 //

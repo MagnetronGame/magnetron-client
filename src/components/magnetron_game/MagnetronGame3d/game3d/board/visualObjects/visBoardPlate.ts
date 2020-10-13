@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import { range } from "../../../utils/arrayUtils"
-import { StaticBoard } from "./board"
+import { range } from "../../../../../../utils/arrayUtils"
+import { StaticBoard } from "../board"
 import MagnetronTheme from "../../../MagnetronTheme"
 
 export type VisBoardPlate = {
@@ -80,14 +80,14 @@ export default (staticBoard: StaticBoard): VisBoardPlate => {
     return boardObject
 }
 
-export const resetBoardObjectCellPositions = (
+export const resetVisBoardPlateCellPositions = (
     staticBoard: StaticBoard,
-    boardObject: VisBoardPlate,
+    visBoardPlate: VisBoardPlate,
 ) => {
     range(staticBoard.cellCount.x).forEach((x) => {
         range(staticBoard.cellCount.y).forEach((y) => {
             const cellStaticPos = staticBoard.cellsCenterPosition[x][y]
-            const cellMesh = boardObject.cells[x][y]
+            const cellMesh = visBoardPlate.cells[x][y]
             cellMesh.position.set(cellStaticPos.x, 0, cellStaticPos.y)
         })
     })

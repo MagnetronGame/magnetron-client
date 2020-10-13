@@ -9,7 +9,7 @@ import {
 } from "../../../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
 import { EMPTY_PIECE } from "../../../../../../services/magnetronServerService/gameHelpers"
 import * as vec2i from "../../../../../../utils/vec2IUtils"
-import { BoardState, calcStateDelta, PieceWithPos } from "../StateDeltaManager"
+import { BoardState, calcStateDelta, PieceWithPos } from "../state_delta/stateDelta"
 
 const emptyState: BoardState = {
     avatarPiecesWithPos: [],

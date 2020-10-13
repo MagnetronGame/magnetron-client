@@ -1,38 +1,29 @@
 import * as THREE from "three"
-import { Board } from "./board"
+import { Board } from "./board/board"
 import { Entity } from "./Entity"
-import { Anim, ChainedAnims } from "./animation/animationTypes"
+import { Anim } from "./animation/animationTypes"
 import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
 import { Anims, Duration } from "./animation/animationHelpers"
 import cameraMovementAnim from "./cameraMovementAnim"
 import * as vec2i from "../../../utils/vec2IUtils"
 import AnimationManager from "./animation/AnimationManager"
-import boardSparksAnimation from "./boardSparksAnimation"
 import magnetAffectAnim from "./magnetAffectAnim"
 import { MagnetColorByType } from "../../../MagnetronTheme"
-import ShakeAnimation from "./ShakeAnimation"
-import sceneBackgroundFadeAnim from "./sceneBackgroundFadeAnim"
 import { AudioManager, MagAudio } from "./AudioManager"
-import { VisAvatarHeight } from "./visPieces"
+import { VisAvatarHeight } from "./board/visualObjects/visPieces"
 import {
     AvatarPiece,
     MagnetPiece,
-    Piece,
 } from "../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
 import {
-    AvatarState,
-    MagBoard,
     MagnetType,
     MagState,
     Vec2I,
 } from "../../../../services/magnetronServerService/types/gameTypes/stateTypes"
-import {
-    BoardState,
-    calcStateDelta,
-    magStateToBoardState,
-    PieceWithChangedPos,
-    PieceWithPos,
-} from "./state_manager/StateDeltaManager"
+import { simulationAnim } from "./simulation/simulationAnim"
+import { calcStateDelta } from "./state_manager/state_delta/stateDelta"
+import { updateBoardByDelta } from "./boardUpdate"
+import { magStateToBoardState } from "./state_manager/stateConversion"
 
 export class Magnetron {
     started = false
@@ -129,7 +120,7 @@ export class Magnetron {
         frontLight.position.set(0, 0, 10)
         this.scene.add(frontLight)
 
-        this.board = new Board(state.staticState, this.pieceEquals)
+        this.board = new Board(state.staticState)
         this.scene.add(this.board.visBoardContainer)
 
         this.board.onVisPieceChange = (type, visPiece) => {
@@ -232,96 +223,21 @@ export class Magnetron {
         return Anims.parallel(anims)
     }
 
-    private setBoardState(board: MagBoard, avatars: AvatarState[]): ChainedAnims {
-        const boardState: BoardState = {
-            avatarPiecesWithPos: avatars.map((a) => ({ piece: a.piece, pos: a.position })),
-            board: board,
-        }
-        const prevBoardState: BoardState | null =
-            this.prevGameState && magStateToBoardState(this.prevGameState)
-        const stateDelta = calcStateDelta(prevBoardState, boardState)
-
-        const enterPiecesAnims = stateDelta.enterPieces.map((enterPiece) =>
-            this.board!.addPiece(enterPiece.piece, enterPiece.pos),
-        )
-
-        const exitPiecesAnims = stateDelta.exitPieces.map((exitPiece) =>
-            this.board!.removePieces(exitPiece.piece.id),
-        )
-
-        const moveAvatarPiecesAnims = stateDelta.movedPieces
-            .filter((movedPiece) => movedPiece.piece.type === "AvatarPiece")
-            .map((movedPiece) =>
-                Anims.chained([
-                    { duration: 0.5 },
-                    this.createNeighbourMagnetsEffect(
-                        movedPiece.piece as AvatarPiece,
-                        movedPiece.prevPos,
-                    ),
-                    this.board!.movePiece(movedPiece.piece.id, movedPiece.prevPos, movedPiece.pos),
-                    { duration: 0.5 },
-                ]),
-            )
-
-        const stateUpdateAnims = [
-            Anims.chained(exitPiecesAnims, "exited pieces"),
-            Anims.chained(enterPiecesAnims, "entered pieces"),
-            Anims.chained(moveAvatarPiecesAnims, "moved avatar pieces"),
-        ].filter((anim) => anim.anims.length !== 0)
-
-        return Anims.chained(stateUpdateAnims, "state update")
-    }
-
     public updateState(state: MagState) {
         if (state.simulationStates.length > 0) {
-            const simAnims = state.simulationStates.map((simState) =>
-                this.setBoardState(
-                    simState.board,
-                    simState.simAvatars.map((sa) => sa.avatarState),
-                ),
-            )
-            const [lastPieceStateAnim, ...restSimAnims] = simAnims
-            const standardSceneBackground = (this.scene.background as THREE.Color).clone()
-            const simulateSceneBackground = new THREE.Color("#011333") // new THREE.Color("#070b40")
-            this.animManager.add(
-                Anims.chained(
-                    [
-                        {
-                            duration: 0,
-                            start: () => {
-                                this.audioManager.stopAudio(MagAudio.BACKGROUND)
-                                this.audioManager.playAudio(
-                                    MagAudio.BACKGROUND_SIMULATION,
-                                    0.8,
-                                    true,
-                                )
-                            },
-                        },
-                        { duration: 2 },
-                        sceneBackgroundFadeAnim(this.scene, simulateSceneBackground, 0.5),
-                        Anims.parallel([
-                            new ShakeAnimation(this.board!.visBoardContainer, 0.4, 0.1),
-                            boardSparksAnimation(this.scene, this.board!, standardSceneBackground),
-                        ]),
-                        lastPieceStateAnim,
-                        { duration: 5 },
-                        Anims.chained(restSimAnims),
-                        { duration: 2 },
-                        sceneBackgroundFadeAnim(this.scene, standardSceneBackground, 0.2),
-                        {
-                            duration: 0,
-                            start: () => {
-                                this.audioManager.stopAudio(MagAudio.BACKGROUND_SIMULATION)
-                                this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true)
-                            },
-                        },
-                    ],
-                    "",
-                ),
-            )
+            const simAnim = simulationAnim(this.prevGameState, state, {
+                scene: this.scene,
+                visBoard: this.visBoard,
+                audioManager: this.audioManager,
+            })
+            this.animManager.add(simAnim)
+            this.prevGameState = state
+        } else {
+            const prevBoardState = this.prevGameState && magStateToBoardState(this.prevGameState)
+            const boardState = magStateToBoardState(state)
+            const stateDelta = calcStateDelta(prevBoardState, boardState)
+            this.animManager.add(updateBoardByDelta(stateDelta, this.visBoard))
         }
-
-        this.animManager.add(this.setBoardState(state.board, state.avatars))
 
         if (state.lifecycleState.isTerminal) {
             this.animManager.add({

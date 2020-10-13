@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { StaticBoard } from "./board"
+import { StaticBoard } from "../board"
 import MagnetronTheme, { MagnetColorByType } from "../../../MagnetronTheme"
 import {
     AvatarPiece,

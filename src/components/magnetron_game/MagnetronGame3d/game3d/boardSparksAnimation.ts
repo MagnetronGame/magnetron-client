@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { Board } from "./board"
+import { Board } from "./board/board"
 import { Anims } from "./animation/animationHelpers"
 import MagnetronTheme from "../../../MagnetronTheme"
 import { Anim } from "./animation/animationTypes"
