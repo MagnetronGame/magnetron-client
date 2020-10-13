@@ -14,3 +14,6 @@ export const addOrReplace = <T>(arr: T[], index: number, elem: T): (T | null)[] 
         return [...arr, ...repeat(index - arr.length, null), elem]
     } else return replace(arr, index, elem)
 }
+
+export const zip = <T, U>(arr1: T[], arr2: U[]): [T, U][] =>
+    arr1.map<[T, U]>((elem, i) => [elem, arr2[i]])
