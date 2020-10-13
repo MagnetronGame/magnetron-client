@@ -27,6 +27,8 @@ export type EmptyPiece = {
 
 export type Piece = AvatarPiece | CoinPiece | MagnetPiece | EmptyPiece
 
+export type PieceType = Piece["type"]
+
 export const isMagnetPiece = (piece: Piece): piece is MagnetPiece => piece.type === "MagnetPiece"
 export const isAvatarPiece = (piece: Piece): piece is AvatarPiece => piece.type === "AvatarPiece"
 export const isCoinPiece = (piece: Piece): piece is CoinPiece => piece.type === "CoinPiece"

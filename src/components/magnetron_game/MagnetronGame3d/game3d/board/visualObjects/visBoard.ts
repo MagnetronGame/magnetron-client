@@ -72,18 +72,6 @@ export class VisBoard {
     public getVisPieces(): VisPiece[] {
         return [...this.visPiecesById.values()]
     }
-    //
-    // public getPiecesCurrentWorldPosOfType<T extends Piece>(type: string): [T, THREE.Vector3][] {
-    //     const allVisPieces = this.visBoardPieces.flat(3) as VisPiece[]
-    //
-    //     const visPiecesWithCurrentWorldPos = allVisPieces
-    //         .filter((visPiece) => visPiece.pieceData.type === type)
-    //         .map((visPiece) => [visPiece.pieceData as T, visPiece.pieceObject.position]) as [
-    //         T,
-    //         THREE.Vector3,
-    //     ][]
-    //     return visPiecesWithCurrentWorldPos
-    // }
 
     private addVisPiece(visPiece: VisPiece, pos: THREE.Vector3) {
         const pieceObject = visPiece.pieceObject

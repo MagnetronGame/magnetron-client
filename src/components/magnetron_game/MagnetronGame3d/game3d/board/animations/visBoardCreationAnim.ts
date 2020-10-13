@@ -9,12 +9,13 @@ import { UP_VEC } from "../../particleSystem/particleSystemUtils"
 import { VisBoardPlate } from "../visualObjects/visBoardPlate"
 import { Board } from "../board"
 import { StaticBoard } from "../staticBoard"
+import { VisBoard } from "../visualObjects/visBoard"
 
-export default (board: Board): Anim =>
+export default (visBoard: VisBoard): Anim =>
     visBoardPlateCreationAnim(
-        board.visBoardPlate,
-        board.staticBoard,
-        board.visBoardContainer.parent || board.visBoardContainer,
+        visBoard.visBoardPlate,
+        visBoard.staticBoard,
+        visBoard.visBoardContainer.parent || visBoard.visBoardContainer,
     )
 
 const visBoardPlateCreationAnim = (

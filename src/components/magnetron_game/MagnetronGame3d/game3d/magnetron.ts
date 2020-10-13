@@ -1,15 +1,10 @@
 import * as THREE from "three"
-import { Board } from "./board/board"
 import { Entity } from "./Entity"
 import { Anim } from "./animation/animationTypes"
-import cameraZoomRotateAnim from "./cameraZoomRotateAnim"
-import { Anims, Duration } from "./animation/animationHelpers"
-import cameraMovementAnim from "./cameraMovementAnim"
-import * as vec2i from "../../../utils/vec2IUtils"
+import { Anims } from "./animation/animationHelpers"
+import * as vec2i from "../../../../utils/vec2IUtils"
 import AnimationManager from "./animation/AnimationManager"
 import magnetAffectAnim from "./magnetAffectAnim"
-import { MagnetColorByType } from "../../../MagnetronTheme"
-import { AudioManager, MagAudio } from "./AudioManager"
 import { VisAvatarHeight } from "./board/visualObjects/visPieces"
 import {
     AvatarPiece,
@@ -20,10 +15,9 @@ import {
     MagState,
     Vec2I,
 } from "../../../../services/magnetronServerService/types/gameTypes/stateTypes"
-import { simulationAnim } from "./simulation/simulationAnim"
-import { calcStateDelta } from "./state_manager/state_delta/stateDelta"
-import { updateBoardByDelta } from "./boardUpdate"
-import { magStateToBoardState } from "./state_manager/stateConversion"
+import World from "./world/World"
+import constructWorldAnim from "./world/constructWorldAnim"
+import { updateState } from "./state_manager/stateUpdate"
 
 export class Magnetron {
     started = false
@@ -31,15 +25,9 @@ export class Magnetron {
     rootElement: HTMLElement
     elementWidth: number
     elementHeight: number
-    camera: THREE.PerspectiveCamera
-    scene: THREE.Scene
-    renderer: THREE.Renderer
-    audioListener: THREE.AudioListener
 
+    world: World
     prevGameState: MagState | null = null
-
-    board: Board | null = null
-    audioManager: AudioManager
 
     private entities: Entity[] = []
     private animManager: AnimationManager
@@ -52,135 +40,38 @@ export class Magnetron {
 
     public onGameEnd: (() => void) | undefined = undefined
 
-    constructor(rootElem: HTMLElement) {
+    constructor(rootElem: HTMLElement, initialState: MagState) {
         this.rootElement = rootElem
         this.elementWidth = this.rootElement.clientWidth
         this.elementHeight = this.rootElement.clientHeight
 
-        const camera = new THREE.PerspectiveCamera(
-            70,
-            this.elementWidth / this.elementHeight,
-            0.01,
-            10,
-        )
-        this.camera = camera
-
-        this.audioListener = new THREE.AudioListener()
-        camera.add(this.audioListener)
-
-        this.audioManager = new AudioManager(this.audioListener)
-
-        const scene = new THREE.Scene()
-        scene.background = new THREE.Color(0xbceef5)
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true })
-
-        renderer.setSize(this.elementWidth, this.elementHeight, false)
-        renderer.domElement.width = this.elementWidth
-        renderer.domElement.height = this.elementHeight
-
-        this.rootElement.appendChild(renderer.domElement)
-
-        this.scene = scene
-        this.renderer = renderer
+        this.world = new World(initialState.staticState, this.elementWidth, this.elementHeight)
+        this.rootElement.appendChild(this.world.getRenderer().domElement)
 
         this.animManager = new AnimationManager()
         this.animManager.logging = false
-        this.addEntity(this.animManager.entity)
-    }
+        this.animManager.start()
 
-    public addEntity(entity: Entity) {
-        this.entities.push(entity)
-        if (this.started) {
-            entity.internalStart(this)
-        }
-    }
+        this.animManager.add(constructWorldAnim(this.world))
 
-    private createWorld(state: MagState) {
-        // this.addEntity(new CameraOrbitControls())
-
-        const lightColor = 0xffffff
-        const lightIntensity = 0.9
-        const light = new THREE.DirectionalLight(lightColor, lightIntensity)
-        light.position.set(-1, 2, 1)
-        this.scene.add(light)
-
-        this.animManager.add({
-            name: "top light movement",
-            context: "main-parallel",
-            duration: Duration.INF,
-            update: ({ currDuration }) => {
-                light.position.set(Math.cos(currDuration) * 3, 10, Math.sin(currDuration) * 3)
-            },
-        })
-
-        const frontLightColor = 0xffffff
-        const frontLightIntensity = 0.3
-        const frontLight = new THREE.DirectionalLight(frontLightColor, frontLightIntensity)
-        frontLight.position.set(0, 0, 10)
-        this.scene.add(frontLight)
-
-        this.board = new Board(state.staticState)
-        this.scene.add(this.board.visBoardContainer)
-
-        this.board.onVisPieceChange = (type, visPiece) => {
-            if (visPiece.pieceData.type === "AvatarPiece") {
-                const avatar = visPiece.pieceData
-                const avatarIndex = avatar.index
-                const screenPosition = this.getAvatarsScreenPosition()[avatarIndex]
-                this.onAvatarsScreenPositionChange &&
-                    this.onAvatarsScreenPositionChange(avatar, screenPosition)
-            }
-        }
-
-        this.animManager.add(
-            Anims.chained([
-                Anims.parallel(
-                    [
-                        {
-                            duration: 0,
-                            start: () =>
-                                this.audioManager.playAudio(MagAudio.BACKGROUND, 0.5, true),
-                        },
-                        this.board.getCreationAnimation(),
-                        cameraZoomRotateAnim(this.camera, 5, 0.6, -Math.PI / 2, 1, 7),
-                    ],
-                    "Create board and initial camera motion",
-                ),
-                cameraMovementAnim(this.camera),
-            ]),
-        )
-
-        this.updateState(state)
-    }
-
-    public startAndLoop(state: MagState) {
-        this.start(state)
+        this.prevTimeMillis = performance.now()
         requestAnimationFrame(this.update)
     }
 
-    private worldToScreenPos = (position: THREE.Vector3, camera: THREE.Camera): Vec2I => {
-        // obj.updateMatrixWorld()
-        const _position = position.clone()
-        _position.project(camera)
-        const width = this.renderer.domElement.width
-        const height = this.renderer.domElement.height
-        return {
-            x: ((_position.x + 1) * width) / 2,
-            y: (-(_position.y - 1) * height) / 2,
-        }
+    public end() {
+        this.animManager.end()
     }
 
-    public getAvatarsScreenPosition = (): Vec2I[] => {
-        if (this.board) {
-            return this.board
-                .getPiecesCurrentWorldPosOfType<AvatarPiece>("AvatarPiece")
-                .sort(([a1], [a2]) => a1.index - a2.index)
-                .map(([, worldPos]) =>
-                    worldPos.clone().add(new THREE.Vector3(0, VisAvatarHeight, 0)),
-                )
-                .map((worldPos) => this.worldToScreenPos(worldPos, this.camera))
-        } else return []
+    private createWorld(state: MagState) {
+        // this.board.onVisPieceChange = (type, visPiece) => {
+        //     if (visPiece.pieceData.type === "AvatarPiece") {
+        //         const avatar = visPiece.pieceData
+        //         const avatarIndex = avatar.index
+        //         const screenPosition = this.getAvatarsScreenPosition()[avatarIndex]
+        //         this.onAvatarsScreenPositionChange &&
+        //             this.onAvatarsScreenPositionChange(avatar, screenPosition)
+        //     }
+        // }
     }
 
     private getMagnetNeighbours(boardPos: Vec2I): [MagnetPiece, Vec2I][] {
@@ -224,20 +115,8 @@ export class Magnetron {
     }
 
     public updateState(state: MagState) {
-        if (state.simulationStates.length > 0) {
-            const simAnim = simulationAnim(this.prevGameState, state, {
-                scene: this.scene,
-                visBoard: this.visBoard,
-                audioManager: this.audioManager,
-            })
-            this.animManager.add(simAnim)
-            this.prevGameState = state
-        } else {
-            const prevBoardState = this.prevGameState && magStateToBoardState(this.prevGameState)
-            const boardState = magStateToBoardState(state)
-            const stateDelta = calcStateDelta(prevBoardState, boardState)
-            this.animManager.add(updateBoardByDelta(stateDelta, this.visBoard))
-        }
+        const stateUpdateAnim = updateState(state, this.prevGameState, this.world)
+        this.animManager.add(stateUpdateAnim)
 
         if (state.lifecycleState.isTerminal) {
             this.animManager.add({
@@ -247,37 +126,24 @@ export class Magnetron {
         }
     }
 
-    private start(state: MagState) {
-        this.prevTimeMillis = performance.now()
-        this.camera.position.set(0.5, 1, 0.5)
-        this.camera.lookAt(0, 0, 0)
-        this.createWorld(state)
-        this.entities.forEach((entity) => entity.internalStart(this))
-        this.started = true
-    }
-
     private update = (timeMillis: number = 0) => {
         requestAnimationFrame(this.update)
         const deltaTimeMillis = Math.max(timeMillis - this.prevTimeMillis, 0)
         this.prevTimeMillis = timeMillis
         const deltaTimeSecs = deltaTimeMillis * 0.001
 
-        const removeEntities = this.entities.filter((entity) => {
-            entity.internalUpdate(this, deltaTimeSecs)
-            return entity.shouldRemove
-        })
-        if (removeEntities.length > 0) {
-            removeEntities.forEach((entity) => entity.internalEnd(this))
-            this.entities = this.entities.filter((entity) => !removeEntities.includes(entity))
-        }
+        this.animManager.update(deltaTimeSecs)
 
-        if (this.resizeRendererToDisplaySize(this.renderer)) {
-            const canvas = this.renderer.domElement
-            this.camera.aspect = canvas.clientWidth / canvas.clientHeight
-            this.camera.updateProjectionMatrix()
-        }
+        this.resizeToDisplaySize(this.world)
+        this.world.render()
+    }
 
-        this.renderer.render(this.scene, this.camera)
+    private resizeToDisplaySize(world: World) {
+        if (this.resizeRendererToDisplaySize(world.renderer)) {
+            const canvas = world.renderer.domElement
+            world.camera.aspect = canvas.clientWidth / canvas.clientHeight
+            world.camera.updateProjectionMatrix()
+        }
     }
 
     private resizeRendererToDisplaySize(renderer: THREE.Renderer): boolean {

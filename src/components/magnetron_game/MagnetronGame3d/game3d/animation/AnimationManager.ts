@@ -76,25 +76,3 @@ export default class AnimationManager extends AnimRunner {
         }
     }
 }
-
-class AnimationManagerEntity extends Entity {
-    animationManager: AnimationManager
-
-    constructor(animationManager: AnimationManager) {
-        super()
-        this.animationManager = animationManager
-    }
-
-    protected start(game: Magnetron): void {
-        this.animationManager.start()
-    }
-
-    protected update(game: Magnetron, deltaTime: number): void {
-        this.animationManager.update(deltaTime)
-        this.shouldRemove = this.animationManager.isFinished
-    }
-
-    protected end(game: Magnetron): void {
-        this.animationManager.end()
-    }
-}
