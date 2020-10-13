@@ -4,11 +4,12 @@ import {
 } from "../../../../../../services/magnetronServerService/types/gameTypes/stateTypes"
 import {
     AvatarPiece,
+    MagnetPiece,
     Piece,
 } from "../../../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
-import { BoardState, calcStateDelta, PieceWithPos } from "../stateManager"
 import { EMPTY_PIECE } from "../../../../../../services/magnetronServerService/gameHelpers"
 import * as vec2i from "../../../../../../utils/vec2IUtils"
+import { BoardState, calcStateDelta, PieceWithPos } from "../StateDeltaManager"
 
 const emptyState: BoardState = {
     avatarPiecesWithPos: [],
@@ -47,14 +48,14 @@ const setBoardPiece = (
 const avatarPiece1: AvatarPiece = {
     id: "1",
     type: "AvatarPiece",
-    index: 0,
+    ownerAvatarIndex: 0,
     magnetType: MagnetType.POSITIVE,
 }
 
 const avatarPiece2: AvatarPiece = {
     id: "2",
     type: "AvatarPiece",
-    index: 1,
+    ownerAvatarIndex: 1,
     magnetType: MagnetType.NEGATIVE,
 }
 
@@ -66,6 +67,7 @@ test("null to empty state delta", () => {
         exitPieces: [],
         movedPieces: [],
         enterPieces: [],
+        changedPieces: [],
         currentPieces: [],
     })
 })
@@ -78,6 +80,7 @@ test("null to single avatar delta", () => {
         exitPieces: [],
         movedPieces: [],
         enterPieces: nextState.avatarPiecesWithPos,
+        changedPieces: [],
         currentPieces: nextState.avatarPiecesWithPos,
     })
 })
@@ -99,6 +102,7 @@ test("one to two avatars", () => {
         enterPieces: [avatarPiece2WithPos],
         exitPieces: [],
         movedPieces: [],
+        changedPieces: [],
         currentPieces: [avatarPiece1WithPos, avatarPiece2WithPos],
     })
 })
@@ -120,6 +124,7 @@ test("one to another avatar", () => {
         enterPieces: [avatarPiece2WithPos],
         exitPieces: [avatarPiece1WithPos],
         movedPieces: [],
+        changedPieces: [],
         currentPieces: [avatarPiece2WithPos],
     })
 })
@@ -141,6 +146,67 @@ test("avatar move", () => {
         enterPieces: [],
         exitPieces: [],
         movedPieces: [{ ...avatarPieceWithPos2, prevPos: avatarPieceWithPos1.pos }],
+        changedPieces: [],
         currentPieces: [avatarPieceWithPos2],
+    })
+})
+
+test("change magnet piece type", () => {
+    const magnetPiece1: MagnetPiece = {
+        type: "MagnetPiece",
+        id: "1",
+        magnetType: MagnetType.POSITIVE,
+        ownerAvatarIndex: 0,
+    }
+    const magnetPiece2 = { ...magnetPiece1, magnetType: MagnetType.NEGATIVE }
+    const pos = { x: 1, y: 1 }
+    const state1: BoardState = setBoardPiece(emptyState, magnetPiece1, pos)
+    const state2: BoardState = setBoardPiece(emptyState, magnetPiece2, pos)
+
+    const delta = calcStateDelta(state1, state2)
+    expect(delta).toEqual({
+        enterPieces: [],
+        exitPieces: [],
+        movedPieces: [],
+        changedPieces: [
+            {
+                piece: magnetPiece2,
+                pos,
+                changedProperties: { magnetType: magnetPiece1.magnetType },
+            },
+        ],
+        currentPieces: [{ piece: magnetPiece2, pos }],
+    })
+})
+
+test("move and change magnet piece type", () => {
+    const magnetPiece1WithPos: PieceWithPos<MagnetPiece> = {
+        piece: {
+            type: "MagnetPiece",
+            id: "1",
+            magnetType: MagnetType.UNKNOWN,
+            ownerAvatarIndex: 0,
+        },
+        pos: { x: 1, y: 1 },
+    }
+    const magnetPiece2WithPos: PieceWithPos<MagnetPiece> = {
+        piece: { ...magnetPiece1WithPos.piece, magnetType: MagnetType.POSITIVE },
+        pos: { x: 2, y: 2 },
+    }
+    const state1: BoardState = setBoardPiece(emptyState, magnetPiece1WithPos)
+    const state2: BoardState = setBoardPiece(emptyState, magnetPiece2WithPos)
+
+    const delta = calcStateDelta(state1, state2)
+    expect(delta).toEqual({
+        enterPieces: [],
+        exitPieces: [],
+        movedPieces: [{ ...magnetPiece2WithPos, prevPos: magnetPiece1WithPos.pos }],
+        changedPieces: [
+            {
+                ...magnetPiece2WithPos,
+                changedProperties: { magnetType: MagnetType.UNKNOWN },
+            },
+        ],
+        currentPieces: [magnetPiece2WithPos],
     })
 })
