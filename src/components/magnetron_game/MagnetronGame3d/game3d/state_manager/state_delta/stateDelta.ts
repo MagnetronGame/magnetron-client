@@ -1,4 +1,4 @@
-import * as vec2i from "../../../../../../../utils/vec2IUtils"
+import * as vec2i from "../../../../../../utils/vec2IUtils"
 import { Maps } from "../../../../../../utils/Maps"
 import { BoardState } from "../stateTypes"
 import { ChangedPieceWithPos, PieceWithChangedPos, StateDelta } from "./stateDeltaTypes"

@@ -1,12 +1,12 @@
 import * as THREE from "three"
-import { Anims, Duration } from "../animation/animationHelpers"
-import { MagAudio } from "../AudioManager"
-import visBoardCreationAnim from "../board/animations/visBoardCreationAnim"
+import { Anims, Duration } from "../animation_manager/animationHelpers"
+import { MagAudio } from "./asset_managers/AudioManager"
+import visBoardCreationAnim from "./board/animations/visBoardCreationAnim"
 
-import cameraMovementAnim from "../cameraMovementAnim"
-import { Anim, ChainedAnims, SingleAnim } from "../animation/animationTypes"
+import cameraMovementAnim from "./animations/cameraMovementAnim"
+import { Anim, ChainedAnims, SingleAnim } from "../animation_manager/animationTypes"
 import World from "./World"
-import cameraZoomRotateAnim from "../cameraZoomRotateAnim"
+import cameraZoomRotateAnim from "./animations/cameraZoomRotateAnim"
 
 export default (world: World): ChainedAnims => {
     const topLight = new THREE.DirectionalLight(0xffffff, 0.9)

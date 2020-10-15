@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { AnimUpdateProps, SingleAnim } from "../animation/animationTypes"
+import { AnimUpdateProps, SingleAnim } from "../animation_manager/animationTypes"
 import { ParticleSystemConfig, ParticleSystemConfigAbsolute } from "./particleSystemTypes"
 import {
     insertDefaultConfigValues,
@@ -9,7 +9,6 @@ import {
     RIGHT_VEC,
     ZERO_VEC,
 } from "./particleSystemUtils"
-import { range } from "../../../../utils/arrayUtils"
 
 export default class ParticleSystemAnim implements SingleAnim {
     duration: number

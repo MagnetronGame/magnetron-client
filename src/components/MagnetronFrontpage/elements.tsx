@@ -1,9 +1,6 @@
 import React, { PropsWithChildren } from "react"
 import styled, { keyframes } from "styled-components"
 import MagnetronTitleLogo from "../MagnetronTitleLogo"
-import MagnetronTheme, { MagnetColorByType } from "../../MagnetronTheme"
-import { Link } from "react-router-dom"
-import { MagnetType } from "../../services/magnetronServerService/magnetronGameTypes"
 import MagnetronHowTo from "../MagnetronHowTo"
 import Button from "../Button"
 

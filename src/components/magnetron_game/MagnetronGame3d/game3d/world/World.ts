@@ -1,20 +1,20 @@
 import * as THREE from "three"
-import { Vec2I } from "../../../../../services/magnetronServerService/types/gameTypes/stateTypes"
-import { AudioManager } from "../AudioManager"
-import { AvatarPiece } from "../../../../../services/magnetronServerService/types/gameTypes/pieceTypes"
-import { VisBoard } from "../board/visualObjects/visBoard"
+import { AudioManager } from "./asset_managers/AudioManager"
+import { VisBoard } from "./board/visualObjects/visBoard"
 import { MagStaticState } from "../../../../../services/magnetronServerService/types/gameTypes/staticStateTypes"
+import WorldTransforms from "./WorldTransforms"
+import WorldListeners from "./WorldListeners"
+import { Vec2I } from "../../../../../services/magnetronServerService/types/gameTypes/stateTypes"
 
 export default class World {
-    readonly camera: THREE.PerspectiveCamera
-    readonly scene: THREE.Scene
-    readonly renderer: THREE.Renderer
-    readonly audioManager: AudioManager
-    readonly visBoard: VisBoard
+    public readonly camera: THREE.PerspectiveCamera
+    public readonly scene: THREE.Scene
+    public readonly renderer: THREE.Renderer
+    public readonly audioManager: AudioManager
+    public readonly visBoard: VisBoard
 
-    public onAvatarsScreenPositionChange:
-        | ((avatar: AvatarPiece, avatarPositions: Vec2I) => void)
-        | undefined = undefined
+    public readonly transforms = new WorldTransforms(this)
+    public readonly listeners = new WorldListeners(this)
 
     constructor(magStaticState: MagStaticState, width: number, height: number) {
         this.camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10)
@@ -36,22 +36,30 @@ export default class World {
         this.scene.add(this.visBoard.getRootNode())
     }
 
-    public getRenderer(): THREE.Renderer {
-        return this.renderer
+    public getDomNode(): HTMLElement {
+        return this.renderer.domElement
     }
 
     public render() {
         this.renderer.render(this.scene, this.camera)
     }
-    public worldToScreenPos = (position: THREE.Vector3): Vec2I => {
-        // obj.updateMatrixWorld()
-        const _position = position.clone()
-        _position.project(this.camera)
-        const width = this.renderer.domElement.width
-        const height = this.renderer.domElement.height
-        return {
-            x: ((_position.x + 1) * width) / 2,
-            y: (-(_position.y - 1) * height) / 2,
+
+    public resizeView(size: Vec2I, prevSize?: Vec2I) {
+        const newAspect = size.x / size.y
+        if (prevSize) {
+            const prevAspect = prevSize.x / prevSize.y
+            if (newAspect !== prevAspect) {
+                this.updateCameraAspect(newAspect)
+            }
+        } else {
+            this.updateCameraAspect(newAspect)
         }
+
+        this.renderer.setSize(size.x, size.y, false)
+    }
+
+    private updateCameraAspect(aspect: number) {
+        this.camera.aspect = aspect
+        this.camera.updateProjectionMatrix()
     }
 }

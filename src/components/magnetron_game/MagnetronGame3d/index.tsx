@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
-import { Magnetron } from "./magnetron"
-import styled from "styled-components"
-import { addOrReplace, replace } from "../../../utils/arrayUtils"
+import { addOrReplace } from "../../../utils/arrayUtils"
 import { MagnetColorByType } from "../../../MagnetronTheme"
 import {
     MagState,
     Vec2I,
 } from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
 import { MagAction } from "../../../services/magnetronServerService/types/gameTypes/actionTypes"
+import { Magnetron3d } from "./game3d/Magnetron3d"
+import { GameOverlay, GameRootNode, PlayerAvatarField, WinnerField, Wrapper } from "./elements"
 
 type Props = {
     className?: string
@@ -17,72 +17,34 @@ type Props = {
     onMagAction?: (action: MagAction) => void
 }
 
-const GameOverlay = styled.div<{ color?: string }>`
-    background-color: ${(props) => props.color || "none"};
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-`
-
-const PlayerAvatarField = styled.div<{ x: number; y: number }>`
-    position: absolute;
-    color: white;
-    top: ${(props) => props.y - 8}px;
-    left: ${(props) => props.x - 8}px;
-    font-family: ${(props) => props.theme.fonts.types.cool};
-    font-size: 16px;
-`
-
-const WinnerField = styled.div<{ color: string }>`
-    width: 100%;
-    height: 100%;
-    color: ${(props) => props.color};
-    font-family: ${(props) => props.theme.fonts.types.cool};
-    font-size: ${(props) => props.theme.fonts.sizes.large};
-    display: flex;
-    justify-content: center;
-    align-items: start;
-`
-
-const MagnetronGame3d: React.FC<Props> = ({
-    className,
-    style,
-    magState: state,
-    possibleMagActions,
-}) => {
+const MagnetronGame3d: React.FC<Props> = ({ className, style, magState: state }) => {
     const rootNode = useRef<HTMLDivElement>(null)
-    const magnetron = useRef<Magnetron>(null)
-    const [initialState, setInitialState] = useState<boolean>(true)
+    const magnetronRef = useRef<Magnetron3d>(null)
     const [avatarsScreenPosition, setAvatarsScreenPosition] = useState<(Vec2I | null)[]>([])
     const [gameTerminal, setGameTerminal] = useState<boolean>(false)
 
     useEffect(() => {
-        if (rootNode.current && !magnetron.current) {
-            // @ts-ignore
-            magnetron.current = new Magnetron(rootNode.current)
-            magnetron.current.onAvatarsScreenPositionChange = (avatar, avatarPosition) =>
-                setAvatarsScreenPosition((oldPositions) =>
-                    addOrReplace(oldPositions, avatar.index, avatarPosition),
-                )
-            magnetron.current.onGameEnd = () => setGameTerminal(true)
-        }
-    }, [rootNode, magnetron])
+        if (state) {
+            if (!magnetronRef.current && rootNode.current) {
+                const magnetron = new Magnetron3d(rootNode.current, state)
 
-    useEffect(() => {
-        if (magnetron.current && state) {
-            if (initialState) {
-                magnetron.current.startAndLoop(state)
-                setInitialState(false)
-            } else {
-                magnetron.current.updateState(state)
+                magnetron.listeners.onAvatarDisplayPositionChange((avatar, avatarPosition) =>
+                    setAvatarsScreenPosition((oldPositions) =>
+                        addOrReplace(oldPositions, avatar.ownerAvatarIndex, avatarPosition),
+                    ),
+                )
+                magnetron.listeners.onGameEnd().then(() => setGameTerminal(true))
+                // @ts-ignore
+                magnetronRef.current = magnetron
+            } else if (magnetronRef.current) {
+                const magnetron = magnetronRef.current
+                magnetron.updateState(state)
             }
         }
-    }, [magnetron, state])
+    }, [state, rootNode, magnetronRef])
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <Wrapper style={style} className={className}>
             <GameOverlay>
                 {avatarsScreenPosition.map(
                     (pos, index) =>
@@ -108,8 +70,8 @@ const MagnetronGame3d: React.FC<Props> = ({
                     </WinnerField>
                 )}
             </GameOverlay>
-            <div ref={rootNode} style={{ width: "100%", height: "100%" }}></div>
-        </div>
+            <GameRootNode ref={rootNode} />
+        </Wrapper>
     )
 }
 

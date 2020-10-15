@@ -81,7 +81,7 @@ export const PieceComp: React.FC<{
             return (
                 <>
                     <AvatarPieceComp className={className} style={style} avatarPiece={piece} />
-                    <AvatarPlayerMeta>{piece.index}</AvatarPlayerMeta>
+                    <AvatarPlayerMeta>{piece.ownerAvatarIndex}</AvatarPlayerMeta>
                 </>
             )
         case "CoinPiece":
