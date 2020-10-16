@@ -16,7 +16,7 @@ const MagnetronHost: React.FC<Props> = ({ accessToken, gameId }) => {
         <div style={{ height: "100%" }}>
             {stateView && (
                 <MagnetronGame3d
-                    magState={stateView.currentState}
+                    stateView={stateView}
                     possibleMagActions={possibleActions}
                     onMagAction={() => console.log("Cannot perform actions on the host")}
                 />

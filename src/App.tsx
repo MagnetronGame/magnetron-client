@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 import MagnetronFrontPage from "./components/MagnetronFrontpage"
 import MagnetronGameClient from "./components/magnetron_client/MagnetronGameClient"
 import MagnetronLobbyClient from "./components/magnetron_client/MagnetronLobbyClient"
-import MagnetronLobbyHost from "./components/magnetron_host/MagnetronLobbyHost"
 import MagnetronLobbyCreate from "./components/magnetron_host/MagnetronLobbyCreate"
 import MagnetronTestAll from "./components/magnetron_test/MagnetronTestAll"
 import { parseQueryParams } from "./utils/queryParser"
@@ -13,6 +12,7 @@ import { ThemeProvider } from "styled-components"
 import MagnetronTheme from "./MagnetronTheme"
 import PageWrapper from "./components/PageWrapper"
 import MagnetronLobbyJoin from "./components/magnetron_client/MagnetronLobbyJoin"
+import MagnetronLobbyHost from "./components/magnetron_host/MagnetronLobbyHost"
 
 function App() {
     const { cookiePrefix } = parseQueryParams(window.location.search)
