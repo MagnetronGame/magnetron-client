@@ -1,24 +1,11 @@
 import React, { useEffect, useRef, useState } from "react"
 import { addOrReplace } from "../../../utils/arrayUtils"
-import { MagnetColorByType } from "../../../MagnetronTheme"
-import {
-    MagState,
-    Vec2I,
-} from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
+import { Vec2I } from "../../../services/magnetronServerService/types/gameTypes/stateTypes"
 import { MagAction } from "../../../services/magnetronServerService/types/gameTypes/actionTypes"
 import { Magnetron3d } from "./game3d/Magnetron3d"
-import {
-    GameOverlay,
-    GameRootNode,
-    OverlayGrid,
-    PlayerAvatarField,
-    WinnerField,
-    Wrapper,
-    PlayerTurnArea,
-    PlayerBoxArea,
-} from "./elements"
+import { GameRootNode, Wrapper } from "./elements"
 import { GameStateView } from "../../../services/magnetronServerService/types/serverTypes"
-import { PlayerTurn } from "./PlayerTurn"
+import GameOverlay, { PlayerInfo } from "./GameOverlay"
 
 type Props = {
     className?: string
@@ -32,18 +19,19 @@ const MagnetronGame3d: React.FC<Props> = ({ className, style, stateView }) => {
     const rootNode = useRef<HTMLDivElement>(null)
     const magnetronRef = useRef<Magnetron3d>(null)
     const [avatarsScreenPosition, setAvatarsScreenPosition] = useState<(Vec2I | null)[]>([])
-    const [gameTerminal, setGameTerminal] = useState<boolean>(false)
+    const [gameTerminalAfterAnims, setGameTerminalAfterAnims] = useState<boolean>(false)
 
     const state = stateView.currentState
-    const playerNames = stateView.players.map((p) =>
-        p._type === "PlayerBot" ? `${p.name} (bot lv${p.botLevel})` : p.name,
-    )
-    const avatarsWithName = state.avatars.map((avatar, i) => ({
-        avatar,
-        name: playerNames[i],
+    const playersInfo: PlayerInfo[] = stateView.players.map((player, i) => ({
+        name: player.name,
+        avatar: state.avatars[i],
+        displayPos: avatarsScreenPosition[i] || undefined,
     }))
+    const playerIndicesWon: number[] | undefined = gameTerminalAfterAnims
+        ? state.lifecycleState.avatarIndicesWon
+        : undefined
+
     const currentPlayerIndex = state.playPhase.nextAvatarIndex
-    const currentPlayer = stateView.players[currentPlayerIndex]
 
     useEffect(() => {
         if (state) {
@@ -55,7 +43,7 @@ const MagnetronGame3d: React.FC<Props> = ({ className, style, stateView }) => {
                         addOrReplace(oldPositions, avatar.ownerAvatarIndex, avatarPosition),
                     ),
                 )
-                magnetron.listeners.onGameEnd().then(() => setGameTerminal(true))
+                magnetron.listeners.onGameEnd().then(() => setGameTerminalAfterAnims(true))
                 // @ts-ignore
                 magnetronRef.current = magnetron
             } else if (magnetronRef.current) {
@@ -67,45 +55,12 @@ const MagnetronGame3d: React.FC<Props> = ({ className, style, stateView }) => {
 
     return (
         <Wrapper style={style} className={className}>
-            <GameOverlay>
-                {avatarsScreenPosition.map(
-                    (pos, index) =>
-                        pos && (
-                            <PlayerAvatarField key={index} x={pos.x} y={pos.y}>
-                                {playerNames[index]}
-                            </PlayerAvatarField>
-                        ),
-                )}
-                {gameTerminal && (
-                    <WinnerField
-                        color={
-                            MagnetColorByType[
-                                state.avatars[state.lifecycleState.avatarIndicesWon[0] || 0].piece
-                                    .magnetType
-                            ].standard
-                        }
-                    >
-                        {state.lifecycleState.avatarIndicesWon
-                            .map((i) => `Player ${i}`)
-                            .join(" and ")}{" "}
-                        won!
-                    </WinnerField>
-                )}
-                <OverlayGrid>
-                    <PlayerTurnArea>
-                        <PlayerTurn playerTurnName={currentPlayer.name} />
-                    </PlayerTurnArea>
-                    {avatarsWithName.map(({ avatar, name }, i) => (
-                        <PlayerBoxArea key={i} playerIndex={i}>
-                            <span>
-                                {name} <br />
-                                coins: {avatar.avatarData.coins} <br />
-                                hand: {avatar.avatarData.hand.map((h) => h.type).join(" ")}
-                            </span>
-                        </PlayerBoxArea>
-                    ))}
-                </OverlayGrid>
-            </GameOverlay>
+            <GameOverlay
+                playersInfo={playersInfo}
+                currentPlayerIndex={currentPlayerIndex}
+                playerIndicesWon={playerIndicesWon}
+                maxHandSize={state.staticState.avatarsStartingHand[0].length}
+            />
             <GameRootNode ref={rootNode} />
         </Wrapper>
     )

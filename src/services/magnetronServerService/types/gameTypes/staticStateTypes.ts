@@ -5,6 +5,6 @@ export type MagStaticState = {
     avatarCount: number
     boardWidth: number
     boardHeight: number
-    startingHand: Piece[][]
+    avatarsStartingHand: Piece[][]
     roundCountBeforeSimulation: number
 }
