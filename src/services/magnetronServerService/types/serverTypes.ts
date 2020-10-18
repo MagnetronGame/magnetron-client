@@ -4,13 +4,13 @@ export type GameId = string
 export type UserId = string
 
 export type PlayerBot = {
-    _type: "PlayerBot"
+    type: "PlayerBot"
     name: string
     botLevel: number
 }
 
 export type PlayerClient = {
-    _type: "PlayerClient"
+    type: "PlayerClient"
     name: string
     userId: UserId
 }

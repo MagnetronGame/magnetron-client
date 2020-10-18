@@ -23,7 +23,7 @@ const MagnetronGame3d: React.FC<Props> = ({ className, style, stateView }) => {
 
     const state = stateView.currentState
     const playersInfo: PlayerInfo[] = stateView.players.map((player, i) => ({
-        name: player.name,
+        name: player.type === "PlayerBot" ? `${player.name} (lv${player.botLevel})` : player.name,
         avatar: state.avatars[i],
         displayPos: avatarsScreenPosition[i] || undefined,
     }))
