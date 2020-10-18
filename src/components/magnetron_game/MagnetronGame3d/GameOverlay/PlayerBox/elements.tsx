@@ -4,16 +4,23 @@ import { PieceComp } from "../../../MagnetronGame2d/pieces"
 export const Wrapper = styled.div<{ playerIndex: number }>`
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
+    padding: 10px 20px;
     border: 5px solid black;
     border-radius: 15px;
-    background-color: #e5e5e5;
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
+    background-color: ${(props) => props.theme.board.edgeColor}99;
+
+    display: grid;
+    grid-template:
+        "name" auto
+        "coins" 15%
+        "." 1fr
+        "hand" 33%
+        / 100%;
 `
 
 export const PlayerBoxName = styled.h3`
-    flex: 0 0 33%;
+    grid-area: name;
     margin: 0;
     padding: 0;
     font-family: ${(props) => props.theme.fonts.types.cool};
@@ -21,19 +28,25 @@ export const PlayerBoxName = styled.h3`
 `
 
 export const PlayerBoxCoinRow = styled.div`
-    flex: 0 0 33%;
+    grid-area: coins;
+    justify-self: end;
+    align-self: stretch;
     display: flex;
 `
 
 export const PlayerBoxHandRow = styled.div`
-    flex: 0 1 33%;
+    grid-area: hand;
+    justify-self: stretch;
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
+    //align-items: stretch;
+    justify-content: center;
 `
 
-export const StyledHandPiece = styled(PieceComp)<{ maxHandSize: number }>`
-    flex: 0 1 ${(props) => 100 / props.maxHandSize}%;
-    max-width: 100%;
-    max-height: 100%;
+export const HandPieceWrapper = styled.span``
+
+export const StyledHandPiece = styled(PieceComp)`
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
 `

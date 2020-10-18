@@ -29,9 +29,11 @@ export const AvatarPieceName = styled.div<{ x: number; y: number }>`
 export const OverlayGrid = styled.div`
     width: 100%;
     height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
     display: grid;
-    grid-template-columns: 20% 1fr 20%;
-    grid-template-rows: 20% 1fr 20%;
+    grid-template-columns: minmax(120px, 240px) 1fr minmax(120px, 240px);
+    grid-template-rows: minmax(80px, 15%) 1fr minmax(80px, 15%);
     grid-template-areas:
         "player0 top player1"
         "left middle right"

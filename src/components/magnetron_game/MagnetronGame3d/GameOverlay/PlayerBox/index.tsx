@@ -1,5 +1,6 @@
 import React from "react"
 import {
+    HandPieceWrapper,
     PlayerBoxCoinRow,
     PlayerBoxHandRow,
     PlayerBoxName,
@@ -8,6 +9,7 @@ import {
 } from "./elements"
 import { AvatarData } from "../../../../../services/magnetronServerService/types/gameTypes/stateTypes"
 import { range } from "../../../../../utils/arrayUtils"
+import { PieceComp } from "../../../MagnetronGame2d/pieces"
 
 type Props = {
     className?: string
@@ -23,12 +25,18 @@ const PlayerBox: React.FC<Props> = ({ className, playerIndex, name, avatarData, 
             <PlayerBoxName>{name}</PlayerBoxName>
             <PlayerBoxHandRow>
                 {avatarData.hand.map((p) => (
-                    <StyledHandPiece key={p.id} piece={p} maxHandSize={maxHandSize} />
+                    <HandPieceWrapper key={p.id}>
+                        <StyledHandPiece piece={p} />
+                    </HandPieceWrapper>
                 ))}
             </PlayerBoxHandRow>
             <PlayerBoxCoinRow>
                 {range(avatarData.coins).map((_, i) => (
-                    <span key={i}>O</span>
+                    <HandPieceWrapper key={i}>
+                        <StyledHandPiece
+                            piece={{ id: i.toString(), type: "CoinPiece", value: 1 }}
+                        />
+                    </HandPieceWrapper>
                 ))}
             </PlayerBoxCoinRow>
         </Wrapper>
